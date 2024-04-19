@@ -1,0 +1,233 @@
+diff --git a/app/Main.hs b/app/Main.hs
+index 6476072..2328f64 100644
+--- a/app/Main.hs
++++ b/app/Main.hs
+@@ -12,14 +12,12 @@ import Control.Concurrent (threadDelay)
+ import qualified Data.ByteString.Char8 as S8 (pack)
+ import Control.Lens (set)
+ import Control.Monad (msum)
+-import Control.Monad.Trans.AWS (trying, _Error)
+-import Network.AWS
+-       (Credentials(Discover, FromKeys), AccessKey(..), SecretKey(..),
+-        newEnv, runAWS, send)
+-import Network.AWS.S3
+-       (ObjectCannedACL(OPublicRead), BucketName(BucketName),
+-        ObjectKey(ObjectKey), poACL, putObject)
+-import Network.AWS.Data.Body (toBody)
++import Amazonka
++       (AccessKey(..), SecretKey(..), Env, EnvNoAuth,
++        newEnv, send, trying, _Error, toBody, discover)
++import Amazonka.Auth (fromKeys)
++import Amazonka.S3.PutObject
++import Amazonka.S3 (BucketName(..), ObjectKey(..), ObjectCannedACL(..))
+ import Network.HTTP.Client (parseUrlThrow)
+ import Network.HTTP.Simple
+        (Request, parseRequest, addRequestHeader, getResponseStatus,
+@@ -76,8 +74,8 @@ getReposInfo path account gitUser = do
+ 
+ -- | Upload an oldstyle '00-index.tar.gz' (i.e. without package.json files) to
+ -- an S3 bucket.
+-updateIndex00 :: Credentials -> BucketName -> IO ()
+-updateIndex00 awsCreds bucketName = do
++updateIndex00 :: AwsDiscoverMechanism -> BucketName -> IO ()
++updateIndex00 awsMech bucketName = do
+   {-
+   No longer works since 00-index.tar.gz is being modified. But
+   thankfully we can finally securely download the file, since
+@@ -97,14 +95,14 @@ updateIndex00 awsCreds bucketName = do
+        index00 <- runResourceT $ (sourceFile indexFP =$= gzip $$ foldC)
+        -}
+ 
+-  env <- newEnv awsCreds
++  env <- newEnv awsMech
+   req <- parseUrlThrow "https://hackage-origin.haskell.org/packages/00-index.tar.gz"
+   index00 <- getResponseBody <$> httpLBS req
+   let key = ObjectKey "00-index.tar.gz"
+       po =
+-        set poACL (Just OPublicRead) $
+-        putObject bucketName key (toBody index00)
+-  eres <- runResourceT $ runAWS env $ trying _Error $ send po
++        set putObject_acl (Just ObjectCannedACL_Public_read) $
++        newPutObject bucketName key (toBody index00)
++  eres <- runResourceT $ trying _Error $ send env po
+   case eres of
+     Left e -> error $ show (key, e)
+     Right _ -> putStrLn "Success"
+@@ -144,7 +142,7 @@ processIndexUpdate repos indexReq mLastEtag = liftIO $ do
+ 
+ 
+ 
+-type AWSInfo = (BucketName, Maybe Credentials)
++type AwsDiscoverMechanism = EnvNoAuth -> IO Env
+ 
+ data Options = Options
+                { oUsername :: String
+@@ -154,13 +152,13 @@ data Options = Options
+                , oGithubAccount :: String -- default "commercialhaskell"
+                , oDelay :: Maybe Int -- default 60 seconds
+                , oS3Bucket :: Maybe BucketName
+-               , oAwsCredentials :: Credentials
++               , oAwsDiscoveryMech :: AwsDiscoverMechanism
+                }
+ 
+ 
+-awsCredentialsParser :: Parser Credentials
++awsCredentialsParser :: Parser AwsDiscoverMechanism
+ awsCredentialsParser =
+-  FromKeys <$>
++  (\a s -> pure . fromKeys a s) <$>
+   ((AccessKey . S8.pack) <$>
+    strOption
+      (long "aws-access-key" <>
+@@ -173,7 +171,7 @@ awsCredentialsParser =
+       help
+         ("Secret key for uploading 00-index.tar.gz " ++
+          "(Default is $AWS_SECRET_KEY_ID environment variable)")))
+-  <|> pure Discover
++  <|> pure discover
+ 
+ 
+ optionsParser :: Parser Options
+@@ -210,7 +208,7 @@ optionsParser =
+              "If none, uploading will be skipped. " ++
+              "(Default is $S3_BUCKET environment variable)"))))) <*>
+   awsCredentialsParser <*
+-  abortOption ShowHelpText (long "help" <> help "Display this help text.")
++  abortOption (ShowHelpText Nothing) (long "help" <> help "Display this help text.")
+ 
+ 
+ 
+@@ -245,7 +243,7 @@ main = do
+             do pushRepos repos commitMessage
+                case ms3Bucket of
+                  Just s3Bucket ->
+-                   updateIndex00 oAwsCredentials s3Bucket
++                   updateIndex00 oAwsDiscoveryMech s3Bucket
+                  _ -> return ()
+           return mnewEtag
+         threadDelay delay
+diff --git a/src/Stackage/Package/IndexConduit.hs b/src/Stackage/Package/IndexConduit.hs
+index 2a91652..a51260d 100644
+--- a/src/Stackage/Package/IndexConduit.hs
++++ b/src/Stackage/Package/IndexConduit.hs
+@@ -134,7 +134,7 @@ decodeHackageHashes pkgName pkgVersion lbs = do
+     hashesParser obj = do
+       signed <- obj .: "signed"
+       targets <- signed .: "targets"
+-      target <- targets .: pack targetKey
++      target <- targets .: fromString targetKey
+       parseJSON target
+ 
+ 
+diff --git a/src/Stackage/Package/Metadata/Types.hs b/src/Stackage/Package/Metadata/Types.hs
+index d13029d..caa508d 100644
+--- a/src/Stackage/Package/Metadata/Types.hs
++++ b/src/Stackage/Package/Metadata/Types.hs
+@@ -23,12 +23,13 @@ import Distribution.Package
+        (Dependency(..), PackageIdentifier(..), PackageName)
+ import Distribution.PackageDescription
+        (CondTree(..), Condition(..), ConfVar(..),
+-        Flag(flagName, flagDefault), GenericPackageDescription, author,
++        PackageFlag(flagName, flagDefault), GenericPackageDescription, author,
+         condBenchmarks, condExecutables, condLibrary, condTestSuites,
+         description, genPackageFlags, homepage, license, maintainer,
+         package, packageDescription, synopsis)
+ import Distribution.Pretty (prettyShow)
+ import Distribution.System (Arch(X86_64), OS(Linux))
++import Distribution.Utils.ShortText (fromShortText)
+ import Distribution.Version
+        (VersionRange, intersectVersionRanges, simplifyVersionRange,
+         withinRange, Version, mkVersion)
+@@ -134,12 +135,14 @@ data CabalFile = CabalFile
+   }
+ 
+ 
++shortTextKey = fromString . fromShortText
++
+ parseCabalFile :: FilePath -> LByteString -> CabalFile
+ parseCabalFile fp lbs =
+   CabalFile
+   { cfPackage = package pd
+   , cfHash = unDigest SHA256 $ hashlazy lbs
+-  , cfSynopsis = pack $ synopsis pd
++  , cfSynopsis = shortTextKey $ synopsis pd
+   , cfBasicDeps =
+     combineDeps $
+     maybe id ((:) . getDeps') (condLibrary gpd) $
+@@ -148,11 +151,11 @@ parseCabalFile fp lbs =
+     combineDeps $
+     map (getDeps' . snd) (condTestSuites gpd) ++
+     map (getDeps' . snd) (condBenchmarks gpd)
+-  , cfAuthor = pack $ author pd
+-  , cfMaintainer = pack $ maintainer pd
+-  , cfHomepage = pack $ homepage pd
+-  , cfLicenseName = pack $ prettyShow $ license pd
+-  , cfDescription = pack $ description pd
++  , cfAuthor = shortTextKey $ author pd
++  , cfMaintainer = shortTextKey $ maintainer pd
++  , cfHomepage = shortTextKey $ homepage pd
++  , cfLicenseName = fromString $ prettyShow $ license pd
++  , cfDescription = shortTextKey $ description pd
+   }
+   where
+     getDeps' = getDeps (getCheckCond gpd)
+@@ -173,7 +176,7 @@ getCheckCond gpd = go
+   where
+     go (Var (OS os)) = os == Linux -- arbitrary
+     go (Var (Arch arch)) = arch == X86_64 -- arbitrary
+-    go (Var (Flag flag)) = fromMaybe False $ Map.lookup flag flags -- arbitrary
++    go (Var (PackageFlag flag)) = fromMaybe False $ Map.lookup flag flags -- arbitrary
+     go (Var (Impl flavor range)) = flavor == GHC && ghcVersion `withinRange` range
+     go (Lit b) = b
+     go (CNot c) = not $ go c
+diff --git a/stack.yaml b/stack.yaml
+index 6f4a99b..4f21808 100644
+--- a/stack.yaml
++++ b/stack.yaml
+@@ -1,5 +1,7 @@
+-resolver: lts-15.6
++resolver: lts-22.4
+ extra-deps:
+-- github: snoyberg/hit
+-  commit: 458392b74a5a7b3b6a7645821e6ba884baa37e50
++- github: commercialhaskell/hit
++  commit: 1546b0c2a2f56e28b9ed5a1c5bf1a10adcad8b6c
+ - patience-0.3@sha256:fe3a2c5b1ac4d3425bad3d1ee0b6bb529b6e74ab41151f8526f26fc8dfa1206b,1252
++nix:
++  packages: [ zlib git ]
+diff --git a/stack.yaml.lock b/stack.yaml.lock
+new file mode 100644
+index 0000000..5bb8396
+--- /dev/null
++++ b/stack.yaml.lock
+@@ -0,0 +1,30 @@
++# This file was autogenerated by Stack.
++# You should not edit this file by hand.
++# For more information, please see the documentation at:
++#   https://docs.haskellstack.org/en/stable/lock_files
++
++packages:
++- completed:
++    name: hit
++    pantry-tree:
++      sha256: 1127ad34ed87f38d6f77ee905c7f2c1a7ad32f246697527bf525a6ef31aebe7d
++      size: 2098
++    sha256: 44469c79ece5704b6e5f862bb61dc6c3c077d7dfdf9ed9a70d6cafcc6bda12e2
++    size: 51950
++    url: https://github.com/commercialhaskell/hit/archive/1546b0c2a2f56e28b9ed5a1c5bf1a10adcad8b6c.tar.gz
++    version: 0.6.3
++  original:
++    url: https://github.com/commercialhaskell/hit/archive/1546b0c2a2f56e28b9ed5a1c5bf1a10adcad8b6c.tar.gz
++- completed:
++    hackage: patience-0.3@sha256:fe3a2c5b1ac4d3425bad3d1ee0b6bb529b6e74ab41151f8526f26fc8dfa1206b,1252
++    pantry-tree:
++      sha256: d2ca47451a599605c641b7c353588d7e1ba3d6036c8a52040b7d1b5b1af8959b
++      size: 368
++  original:
++    hackage: patience-0.3@sha256:fe3a2c5b1ac4d3425bad3d1ee0b6bb529b6e74ab41151f8526f26fc8dfa1206b,1252
++snapshots:
++- completed:
++    sha256: 8b211c5a6aad3787e023dfddaf7de7868968e4f240ecedf14ad1c5b2199046ca
++    size: 714097
++    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/22/4.yaml
++  original: lts-22.4
