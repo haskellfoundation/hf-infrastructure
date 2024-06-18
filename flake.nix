@@ -24,7 +24,6 @@
           self.nixosModules.stackage-server
           self.nixosModules.casa-server
           inputs.sops-nix.nixosModules.sops
-          { sops.defaultSopsFile = ./stackage.sops.yaml; }
           {
             security.acme.acceptTerms = true;
             # FIXME we need a centralized address for this.
@@ -107,12 +106,6 @@
           "${name}/ssh_key" = {
             owner = name;
             path = "/home/${name}/.ssh/id_rsa";
-          };
-          gpg_key = {
-            owner = name;
-            format = "binary";
-            sopsFile = ./stackage-keyring.gpg.enc;
-            path = "/home/${name}/.gnupg/secring.gpg";
           };
         } // mkRuntimeSecrets
           [ "aws_access"
