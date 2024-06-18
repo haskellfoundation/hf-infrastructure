@@ -14,7 +14,7 @@
 
   outputs = inputs@{ self, ... }: {
     nixosModules.stackage-builder = { ... }: {
-      modules = [
+      imports = [
         # Change this to a flake-defined nixosModule as well?
         ./stackage-builder/configuration.nix
         self.nixosModules.hackage-metadata-refresh
