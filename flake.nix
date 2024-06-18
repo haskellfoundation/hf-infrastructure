@@ -13,6 +13,36 @@
   inputs.sops-nix.url = "github:Mic92/sops-nix";
 
   outputs = inputs@{ self, ... }: {
+    nixosModules.stackage-builder = { ... }: {
+      modules = [
+        # Change this to a flake-defined nixosModule as well?
+        ./stackage-builder/configuration.nix
+        self.nixosModules.hackage-metadata-refresh
+        self.nixosModules.hackage-mirror
+        self.nixosModules.stackage-server
+        self.nixosModules.casa-server
+        inputs.sops-nix.nixosModules.sops
+        {
+          security.acme.acceptTerms = true;
+          # FIXME we need a centralized address for this.
+          security.acme.defaults.email = "bryan@haskell.foundation";
+        }
+        { services.fail2ban.enable = true; }
+        # This could be a *lot* bigger, but it probably makes more sense to
+        # forward it to a central log server (even though we don't have one
+        # yet). I don't know how well journald actually handles huge logs
+        { services.journald.extraConfig = "SystemMaxSize=48GB"; }
+        { nix.settings.substituters = [
+            "https://cache.nixos.org"
+            "https://stackage-infrastructure.cachix.org"
+          ];
+          nix.settings.trusted-public-keys = [
+            "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+            "stackage-infrastructure.cachix.org-1:R3E1FYE8IKCNbUWCvVhsnlLJ4FC6onEQLhQX2kY0ufQ="
+          ];
+        }
+      ];
+    };
     nixosConfigurations = {
       stackage-builder = inputs.nixpkgs-2311.lib.nixosSystem {
         system = "x86_64-linux";
