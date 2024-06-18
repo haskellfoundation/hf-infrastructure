@@ -21,7 +21,7 @@ declare -A old
 # paste in new values...
 old=(
     "stackage-builder"
-    /nix/store/icnqnl70chvvb5y10swpwidkzndfv45r-nixos-system-stackage-builder-23.11.20240103.b0b2c54
+    /nix/store/b6j3dq5n297v0av5fs1sfm1hfz2a9z6c-nixos-system-stackage-builder-23.11.20240415.53a2c32
 )
 
 declare -A target

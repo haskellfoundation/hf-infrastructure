@@ -228,8 +228,8 @@
             src = pkgs.fetchFromGitHub {
               owner = "commercialhaskell";
               repo = myPackage;
-              rev = "22977c3475de4d2329760306c6f556ee5639fffb";
-              sha256 = "sha256-EmdxhNbqpmHIQZEw5YruLadm13wIXdudP5U8s7uaerY=";
+              rev = "6d6b20e63f149a1459d07ca9b16a54c151c0fa5b";
+              sha256 = "sha256-M+P+uhxQ0AgLXV0S+UjoCaEnfSTU9v/1GvtUA3Hfhhk=";
               # stackage-server uses `gitrev`
               leaveDotGit = true;
             };
