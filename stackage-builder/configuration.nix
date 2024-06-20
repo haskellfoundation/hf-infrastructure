@@ -5,11 +5,6 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [
-      ./stackage-curator.nix
-    ];
-
   # 90% of the 256Gi total memory
   # (9 `div` 10) * 256 * 2^30
   #
