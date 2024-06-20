@@ -6,8 +6,7 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
-      ./packet.nix
+    [
       ./stackage-curator.nix
     ];
 
@@ -49,7 +48,7 @@
   # services.xserver.enable = true;
 
 
-  
+
 
   # Configure keymap in X11
   # services.xserver.layout = "us";
@@ -115,4 +114,3 @@
   system.stateVersion = "23.05"; # Did you read the comment?
 
 }
-
