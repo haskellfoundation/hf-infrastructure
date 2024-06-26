@@ -1,11 +1,8 @@
 # Defines stackage.service, stackage-alpha.service, stackage-update.service, and
 # stackage-update.timer.
 #
-# NB: stackage-update.service runs two processes: stackage-server-cron (the main
-# workhorse) and backsync-snapshots_json.sh (keeping backward compat for the old
-# snapshots.json URL). See
-# https://github.com/commercialhaskell/stackage/issues/7349 for details on the
-# latter.
+# stackage-update.service runs stackage-server-cron to keep the Stackage website
+# up to date.
 #
 # TODO: As a sort-of experiment, I mixed sops-nix with systemd's LoadCredential
 # functionality. I am not sure this was a good idea and would love to have
@@ -184,38 +181,26 @@ in {
     };
     path = [ pkgs.git ];
     environment = {
+      # This access is enabled in the services.postgres section
       PGSTRING = "postgresql://stackage@/stackage";
     };
     preStart = ''
       ln -srf ${stackage-server-app}/lib/config $HOME
     '';
-    script =
-      let
-        backsync = pkgs.writeShellApplication {
-          name = "backsync";
-          runtimeInputs = [ pkgs.awscli pkgs.curl pkgs.diffutils ];
-          text = builtins.readFile ../scripts/backsync-snapshots_json.sh;
-        };
-      in ''
-        # FIXME: This stack update is a cargo cult from the fpco k8s
-        # deployment. I don't know what it's for.
-        ${pkgs.stack}/bin/stack update
+    script = ''
+      # FIXME: This stack update is a cargo cult from the fpco k8s
+      # deployment. I don't know what it's for.
+      ${pkgs.stack}/bin/stack update
 
-        export AWS_ACCESS_KEY_ID="$(< "$CREDENTIALS_DIRECTORY/creds_aws_access_r2")"
-        export AWS_SECRET_ACCESS_KEY="$(< "$CREDENTIALS_DIRECTORY/creds_aws_secret_r2")"
-        export AWS_S3_ENDPOINT="$(< "$CREDENTIALS_DIRECTORY/creds_r2_endpoint")"
+      export AWS_ACCESS_KEY_ID="$(< "$CREDENTIALS_DIRECTORY/creds_aws_access_r2")"
+      export AWS_SECRET_ACCESS_KEY="$(< "$CREDENTIALS_DIRECTORY/creds_aws_secret_r2")"
+      export AWS_S3_ENDPOINT="$(< "$CREDENTIALS_DIRECTORY/creds_r2_endpoint")"
 
-        ${stackage-server-app}/bin/stackage-server-cron \
-          --cache-cabal-files --log-level info \
-          --download-bucket stackage-haddock \
-          --upload-bucket stackage-haddock \
-          --download-bucket-url https://stackage-haddock.haskell.org
-
-        export AWS_ACCESS_KEY_ID="$(< "$CREDENTIALS_DIRECTORY/creds_aws_access_fpco")"
-        export AWS_SECRET_ACCESS_KEY="$(< "$CREDENTIALS_DIRECTORY/creds_aws_secret_fpco")"
-        unset AWS_S3_ENDPOINT
-
-        ${lib.getExe backsync}
+      ${stackage-server-app}/bin/stackage-server-cron \
+        --cache-cabal-files --log-level info \
+        --download-bucket stackage-haddock \
+        --upload-bucket stackage-haddock \
+        --download-bucket-url https://stackage-haddock.haskell.org
     '';
   };
   systemd.timers.${updateName} = {
