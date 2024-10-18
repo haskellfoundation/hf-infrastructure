@@ -7,12 +7,24 @@
     "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     "stackage-infrastructure.cachix.org-1:R3E1FYE8IKCNbUWCvVhsnlLJ4FC6onEQLhQX2kY0ufQ="
   ];
-  inputs.nixpkgs-2311.url = "github:nixos/nixpkgs/nixos-23.11";
-  # LTS 15.6 (GHC 8.8.3)
-  inputs.nixpkgs-2009.url = "github:nixos/nixpkgs/nixos-20.09";
-  inputs.sops-nix.url = "github:Mic92/sops-nix";
 
+  inputs = {
+    nixpkgs-2311.url = "github:nixos/nixpkgs/nixos-23.11";
+    # LTS 15.6 (GHC 8.8.3)
+    nixpkgs-2009.url = "github:nixos/nixpkgs/nixos-20.09";
+    sops-nix.url = "github:Mic92/sops-nix";
+    disko.url = "github:nix-community/disko";
+    haskell-certification.url = "github:serokell/haskell-certification";
+  };
   outputs = inputs@{ self, ... }: {
+    nixosModules.hf-cert-1 = {
+      imports = [
+        ./hf-cert-1
+        inputs.disko.nixosModules.disko
+        inputs.sops-nix.nixosModules.sops
+        inputs.haskell-certification.nixosModules.default
+      ];
+    };
     nixosModules.stackage-builder = { ... }: {
       imports = [
         # Change this to a flake-defined nixosModule as well?
@@ -43,6 +55,10 @@
           ];
         }
       ];
+    };
+
+    devShell.x86_64-linux = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
+      buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
     };
 
     ##
