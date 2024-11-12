@@ -16,7 +16,7 @@ in
   services.haskell-certification = {
     enable = true;
     environmentFile = config.sops.secrets.cert_env_file.path;
-    externalUri = "https://new-certification.haskell.foundation";
+    externalUri = "https://certification.haskell.foundation";
   };
 
   services.postgresql = {
@@ -31,7 +31,7 @@ in
   };
 
   services.caddy.enable = true;
-  services.caddy.virtualHosts."new-certification.haskell.foundation" = {
+  services.caddy.virtualHosts."certification.haskell.foundation" = {
     extraConfig = ''
       reverse_proxy :3000
     '';
