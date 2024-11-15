@@ -36,5 +36,11 @@ in
       reverse_proxy :3000
     '';
   };
+  # Preserve the legacy redirect from the original URL
+  services.caddy.virtualHosts."certification.serokell.io" = {
+    extraConfig = ''
+      redir https://certification.haskell.foundation{uri} permanent
+    '';
+  };
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 }
