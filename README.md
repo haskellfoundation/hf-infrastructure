@@ -1,9 +1,10 @@
-# Stackage Deployment
+# HF Infrastructure
 
 The mission for this repository is to store all configuration, tooling, and
-documentation for deploying Stackage.org.
+documentation for deploying Stackage.org and other Haskell Foundation-managed
+infrastructure.
 
-## Status
+## Status (Stackage)
 
 Stackage is deployed to a NixOS server.
 
@@ -32,7 +33,7 @@ creating an issue first.
 
 ### Contact
 
-This repository: https://github.com/commercialhaskell/stackage-infrastructure/
+This repository: https://github.com/haskellfoundation/hf-infrastructure
 
 Forum: https://discourse.haskell.org/
 
