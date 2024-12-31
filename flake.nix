@@ -80,11 +80,9 @@
         hsOverlay = pkgs: self: super: {
           ${myPackage} = pkgs.haskell.lib.buildStackProject {
             name = myPackage;
-            src = pkgs.fetchFromGitHub {
-              owner = "commercialhaskell";
-              repo = myPackage;
+            src = builtins.fetchGit {
+              url = "https://github.com/commercialhaskell/${myPackage}.git";
               rev = "189c8fc25859c59808974a5a4b6d1cf7526bda1a";
-              hash = "sha256-cRMZH/Mjh03GerjYG4kH2d1Y7zt3j3KEnBdnJs9Ss3s=";
             };
             ghc = pkgs.haskell.compiler.ghc963;
             buildInputs = [ pkgs.zlib ];
@@ -173,25 +171,21 @@
         hsOverlay = pkgs: self: super:
           let
             amazonkaRepo = {
-              owner = "brendanhay";
-              repo = "amazonka";
+              url = "https://github.com/brendanhay/amazonka.git";
               rev = "85e0289f8dc23c54b00f7f1a09845be7e032a1eb";
-              sha256 = "sha256-o3TOP+5vOuUELlqZbAn99lxKobh/f6ZnL4Bxflb67dU=";
             };
             hackageMirrorRepo = {
-              owner = "chreekat";
-              repo = myPackage;
+              url = "https://github.com/chreekat/${myPackage}.git";
               rev = "6cfb57885e5e8d7d17cb85531508ae79622cdaae";
-              sha256 = "sha256-lk687q5ekI5ukBtd2+lXUJN4S4FdSwrGCwQb+JjCEz4=";
             };
           in {
             amazonka-core = pkgs.haskell.lib.compose.overrideSrc
-              { src = "${pkgs.fetchFromGitHub amazonkaRepo}/lib/amazonka-core"; }
+              { src = "${builtins.fetchGit amazonkaRepo}/lib/amazonka-core"; }
               super.amazonka-core;
             # Jailbreak to get around my amazonka>2.0 failsafe
             ${myPackage} = pkgs.haskell.lib.compose.doJailbreak (self.callCabal2nix
               myPackage
-              (pkgs.fetchFromGitHub hackageMirrorRepo)
+              (builtins.fetchGit hackageMirrorRepo)
               {});
           };
       in final: prev: {
@@ -239,13 +233,9 @@
           # generated.
           ${myPackage} = pkgs.haskell.lib.buildStackProject {
             name = myPackage;
-            src = pkgs.fetchFromGitHub {
-              owner = "commercialhaskell";
-              repo = myPackage;
-              rev = "83f6bd9467836f8aa9255d700256436eb4fe0677";
-              sha256 = "sha256-9wG+SFMpxeTIpjdmMm0yMsrz/1J177VcUjl9c7/pPLE=";
-              # stackage-server uses `gitrev`
-              leaveDotGit = true;
+            src = builtins.fetchGit {
+              url = "https://github.com/commercialhaskell/${myPackage}.git";
+              rev = "cd621636eb37431808a737e5280ddf9974ac7b4a";
             };
             ghc = pkgs.haskell.compiler.ghc963;
             buildInputs = [ pkgs.zlib pkgs.openssl pkgs.git pkgs.postgresql ];
@@ -286,11 +276,9 @@
         hsOverlay = pkgs: self: super: {
           ${myPackage} = pkgs.haskell.lib.buildStackProject {
             name = myPackage;
-            src = pkgs.fetchFromGitHub {
-              owner = "commercialhaskell";
-              repo = myPackage;
+            src = builtins.fetchGit {
+              url = "https://github.com/commercialhaskell/${myPackage}.git";
               rev = "9ce3ae6653120ca00b898c193ee5c9955b697d34";
-              sha256 = "sha256-bBjHW8IWpxl/J4GzTziyBq5DWTB6dagPFvzJAFVpSLY=";
             };
             ghc = pkgs.haskell.compiler.ghc8107;
             buildInputs = [ pkgs.zlib pkgs.git pkgs.postgresql ];
@@ -320,12 +308,9 @@
         hsOverlay = pkgs: self: super: {
           ${myPackage} = pkgs.haskell.lib.buildStackProject {
             name = myPackage;
-            src = pkgs.fetchFromGitHub {
-              owner = "commercialhaskell";
-              repo = myPackage;
+            src = builtins.fetchGit {
+              url = "https://github.com/commercialhaskell/${myPackage}.git";
               rev = "558215d639561301a0069dc749896ad3e71b5c24";
-              sha256 =
-              "sha256-s+3RhFk0ZTorlgYEOTP93F54ARVAN3C4eIwBRUlUOQ8=";
             };
             patches = [ ./stackage-builder/curator_hackage-server-T1023.patch ];
             ghc = pkgs.haskell.compiler.ghc947;
