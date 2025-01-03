@@ -138,6 +138,8 @@
           after = [ "network.target" ];
           serviceConfig = {
             User = name;
+            Restart = "on-failure";
+            RestartSec = 1;
             LoadCredential = "creds:/run/secrets/${name}/runtime";
             # sop.secrets provides ~/.gnupg/secring.gpg, but with wrong
             # permissions. Fix before starting the unit.

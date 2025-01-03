@@ -43,6 +43,8 @@ in {
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       User = name;
+      Restart = "on-failure";
+      RestartSec = 1;
       WorkingDirectory = "~";
     };
     environment = {
@@ -93,6 +95,8 @@ in {
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       User = updateName;
+      Restart = "on-failure";
+      RestartSec = 1;
       WorkingDirectory = "~";
     };
     script = ''

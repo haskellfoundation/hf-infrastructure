@@ -39,6 +39,8 @@ let
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         User = name;
+        Restart = "on-failure";
+        RestartSec = 1;
         LoadCredential = "creds:/run/secrets/${name}";
         WorkingDirectory = workDir;
       };
