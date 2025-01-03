@@ -1,5 +1,4 @@
-# Defines stackage.service, stackage-alpha.service, stackage-update.service, and
-# stackage-update.timer.
+# Defines stackage.service, stackage-update.service, and stackage-update.timer.
 #
 # stackage-update.service runs stackage-server-cron to keep the Stackage website
 # up to date.
@@ -120,19 +119,6 @@ in {
       DOWNLOAD_BUCKET_URL = "https://stackage-haddock.haskell.org";
     };
   };
-  systemd.services."${name}-alpha" = mkService {
-    workDir = "/home/${name}/alpha-site";
-    keyName = "creds_aws_access_r2";
-    secretName = "creds_aws_secret_r2";
-    extraEnvironment = {
-      DOWNLOAD_BUCKET_URL = "https://stackage-haddock.haskell.org";
-      PORT = "3003";
-    };
-    script = ''
-        # Experimentally not using S3 creds.
-        ${stackage-server-app}/bin/stackage-server +RTS -I3 -N1
-    '';
-  };
   services.nginx.virtualHosts =
     let
       stackageProxy = { port ? 3000 }: {
@@ -143,13 +129,6 @@ in {
         };
       };
     in {
-      "stackage.haskell.org" = (stackageProxy { port = 3003; }) // {
-        enableACME = true;
-        # We don't want this site to show up on Google yet.
-        extraConfig = ''
-          add_header X-Robots-Tag none always;
-        '';
-      };
       "www.stackage.org" = (stackageProxy {}) // {
         sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
         sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
