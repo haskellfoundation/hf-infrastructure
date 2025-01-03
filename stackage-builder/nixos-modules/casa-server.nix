@@ -2,7 +2,6 @@
 let
   name = "casa";
   updateName = "casa-update";
-  vhostHaskellOrg = "casa.haskell.org";
   vhostStackageOrg = "casa.stackage.org";
   publicPort = 3001;
   privatePushPort = 3002;
@@ -59,14 +58,6 @@ in {
   };
   services.nginx.enable = true;
   services.nginx.virtualHosts = {
-    ${vhostHaskellOrg} = {
-      forceSSL = true;
-      enableACME = true;
-      locations."/" = {
-        proxyPass = "http://localhost:${toString publicPort}";
-        recommendedProxySettings = true;
-      };
-    };
     ${vhostStackageOrg} = {
       forceSSL = true;
       locations."/" = {
