@@ -24,9 +24,6 @@ in {
   };
   systemd.services.${name} = {
     description = "Stackage Hackage mirror updater";
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "network.target" ];
-    after = [ "network.target" ];
     serviceConfig = {
       User = name;
       LoadCredential = "creds:/run/secrets/${name}";
@@ -55,9 +52,10 @@ in {
   };
   systemd.timers.${name} = {
     description = "Fires ${name}.service";
-    wantedBy = [ "multi-user.target" ];
+    wantedBy = [ "timers.target" ];
     timerConfig = {
       Unit = "${name}.service";
+      OnBootSec = 30;
       # Only fire if the previous run has finished.
       OnUnitInactiveSec = "5 min";
     };

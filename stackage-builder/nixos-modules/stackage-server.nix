@@ -152,8 +152,6 @@ in {
   };
   systemd.services.${updateName} = {
     description = "Stackage server updater";
-    requires = [ "postgresql.service" ];
-    after = [ "postgresql.service" ];
     serviceConfig = {
       User = updateName;
       WorkingDirectory = "~";
@@ -186,9 +184,10 @@ in {
   };
   systemd.timers.${updateName} = {
     description = "${updateName} trigger";
-    wantedBy = [ "multi-user.target" ];
+    wantedBy = [ "timers.target" ];
     timerConfig = {
       Unit = "${updateName}.service";
+      OnBootSec = 30;
       # Only fire if the previous run has finished.
       OnUnitInactiveSec = "5 min";
     };
