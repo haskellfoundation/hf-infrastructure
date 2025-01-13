@@ -172,6 +172,8 @@
         myPackage = "hackage-mirror-tool";
         hsOverlay = pkgs: self: super:
           let
+            # FIXME: I think this can be removed now that we've upgraded to
+            # 24.11.
             amazonkaRepo = {
               url = "https://github.com/brendanhay/amazonka.git";
               rev = "85e0289f8dc23c54b00f7f1a09845be7e032a1eb";
