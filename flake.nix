@@ -16,6 +16,7 @@
     sops-nix.url = "github:Mic92/sops-nix";
     disko.url = "github:nix-community/disko";
     haskell-certification.url = "github:serokell/haskell-certification";
+    stackage-server.url = "github:commercialhaskell/stackage-server";
   };
   outputs = inputs@{ self, ... }: {
     nixosModules.hf-cert-1 = {
@@ -71,6 +72,8 @@
     ##
     ## HACKAGE METADATA REFRESH
     ##
+
+    # FIXME extract from flake.nix, as above
 
     # This overlay is only used to define the all-cabal-tool package. It's only
     # exposed because it can be.
@@ -165,6 +168,8 @@
     ## HACKAGE MIRROR
     ##
 
+    # FIXME extract from flake.nix, as above
+
     # Same as the other overlay, this is only exposed because it can be. It's
     # just used to define the hackage-mirror-tool package.
     overlays.hackage-mirror-tool =
@@ -216,62 +221,17 @@
     ##
     ## Comprised of stackage-server-update and stackage-server itself.
 
-    ## Just used to define the stackage-server package.
-    overlays.stackage-server =
-      let
-        myPackage = "stackage-server";
-        hsOverlay = pkgs: self: super: {
-          # WARNING: Changing the hoogle version causes stackage-server-cron to
-          # regenerate Hoogle databases FOR EVERY SNAPSHOT, EVER. Usually,
-          # that's ok! But don't forget! The consequences are: (1) More disk
-          # usage. Hoogle databases are not cleaned up on the
-          # stackage-server-cron side, nor on the stackage-server side. (Yet.
-          # This will change.) (2) More bucket usage. While it's easy to say
-          # it's a drop in the literal bucket, such excessive misuse of storage
-          # makes administration, backups, disaster recovery, and many other
-          # DevOps concerns harder and harder. All but the latest LTS's database
-          # are literally never used anyway. (3) The Hoogle database schema is
-          # defined by the first three version components. Any more frequent
-          # regeneration is pure unadulterated waste. (4) Stackage's Hoogle
-          # search will be unavailable until the new databases have been
-          # generated.
-          ${myPackage} = pkgs.haskell.lib.buildStackProject {
-            name = myPackage;
-            src = builtins.fetchGit {
-              url = "https://github.com/commercialhaskell/${myPackage}.git";
-              rev = "cd621636eb37431808a737e5280ddf9974ac7b4a";
-            };
-            ghc = pkgs.haskell.compiler.ghc963;
-            buildInputs = [ pkgs.zlib pkgs.openssl pkgs.git pkgs.postgresql ];
-            # During build, static files are generated into the source tree's
-            # static/ dir. Plus, config/ is needed at runtime.
-            postInstall = ''
-              mkdir -p $out/lib
-              cp -a {static,config} $out/lib
-            '';
-          };
-        };
-      in final: prev: {
-        myHaskellPackages = prev.haskellPackages.override {
-          overrides = hsOverlay final;
-        };
-      };
-    packages.x86_64-linux.stackage-server =
-      let
-        myPkgs = import inputs.nixpkgs-2311 {
-          system = "x86_64-linux"; overlays = [ self.overlays.stackage-server ];
-        };
-      in myPkgs.myHaskellPackages.stackage-server;
-
     nixosModules.stackage-server = import ./stackage-builder/nixos-modules/stackage-server.nix {
       stackage-update-uid = 1005;
       stackage-uid = 1006;
-      stackage-server-app = self.packages.x86_64-linux.stackage-server;
+      stackage-server-app = inputs.stackage-server.packages.x86_64-linux.default;
     };
 
     ##
     ## CASA SERVER
     ##
+
+    # FIXME extract from flake.nix, as above
 
     # Just used to define the casa package.
     overlays.casa =

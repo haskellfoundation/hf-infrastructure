@@ -49,7 +49,7 @@ let
         PGSTRING = "postgresql://stackage@/stackage";
       } // extraEnvironment;
       preStart = ''
-        ln -srf ${stackage-server-app}/lib/* .
+        ln -srf ${stackage-server-app}/run/* .
       '';
       script = if script == null then ''
         # FIXME: Does stackage-server even use these creds?
@@ -164,7 +164,7 @@ in {
       PGSTRING = "postgresql://stackage@/stackage";
     };
     preStart = ''
-      ln -srf ${stackage-server-app}/lib/config $HOME
+      ln -srf ${stackage-server-app}/run/config $HOME
     '';
     script = ''
       # FIXME: This stack update is a cargo cult from the fpco k8s
