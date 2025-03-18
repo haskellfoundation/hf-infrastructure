@@ -227,6 +227,10 @@
       stackage-server-app = inputs.stackage-server.packages.x86_64-linux.default;
     };
 
+    # Expose this mainly so I can roll it up in cachix-push.sh. I should
+    # probably do this from that repo itself, though...
+    packages.x86_64-linux.stackage-server = inputs.stackage-server.packages.x86_64-linux.default;
+
     ##
     ## CASA SERVER
     ##
