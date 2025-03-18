@@ -1826,11 +1826,11 @@
         "nixpkgs": "nixpkgs_14"
       },
       "locked": {
-        "lastModified": 1738321371,
-        "narHash": "sha256-G2Su+u/pa1i+LiZYyspJS2rz/OD2FSem7w8GS2FsP9w=",
+        "lastModified": 1742287503,
+        "narHash": "sha256-5BrsZLgJ/mvmm4sWjzoPZsNh45gTpPWa55VFel1/65E=",
         "owner": "commercialhaskell",
         "repo": "stackage-server",
-        "rev": "baddf101941aadac958ab9328bd3662e070830c3",
+        "rev": "a384248d689107689eb45e63f2c6112ea5a515d8",
         "type": "github"
       },
       "original": {
