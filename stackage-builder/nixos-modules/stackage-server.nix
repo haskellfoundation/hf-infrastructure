@@ -138,6 +138,38 @@ in {
     };
   networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
+  # Clean up stackage-server's extraneous hoogle files.
+
+  systemd.services.stackage-hoogle-cleanup =
+    let myScript = pkgs.writeShellApplication {
+      name = "stackage-hoogle-cleanup";
+      text = ''
+        ## Delete all but the five latest directories in /home/${srvName}/hoogle.
+        cd "/home/${srvName}/hoogle"
+        # shellcheck disable=SC2012
+        # FIXME: Keep the latest lts and nightlies both.
+        # ls --zero -1tr | head -zn -5 | xargs -0 --no-run-if-empty rm -r
+      '';
+      runtimeInputs = [ pkgs.coreutils pkgs.findutils ];
+    };
+    in
+    {
+      description = "Stackage server hoogle cleanup";
+      script = lib.getExe myScript;
+      serviceConfig = {
+        Type = "oneshot";
+      };
+    };
+
+  systemd.timers.stackage-hoogle-cleanup = {
+    description = "Run stackage-hoogle-cleanup every day";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
+
   # STACKAGE UPDATER
 
   users.groups.${updateName} = {
