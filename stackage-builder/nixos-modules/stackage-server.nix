@@ -22,7 +22,7 @@
 #
 { stackage-update-uid, stackage-uid, stackage-server-app }: { pkgs, config, lib, ... }:
 let
-  name = "stackage-server";
+  srvName = "stackage-server";
   updateName = "stackage-update";
   mkService =
     { description ? "Stackage server"
@@ -38,10 +38,10 @@ let
       after = [ "postgresql.service" "network.target" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        User = name;
+        User = srvName;
         Restart = "on-failure";
         RestartSec = 1;
-        LoadCredential = "creds:/run/secrets/${name}";
+        LoadCredential = "creds:/run/secrets/${srvName}";
         WorkingDirectory = workDir;
       };
       path = [ pkgs.git ];
@@ -75,7 +75,7 @@ in {
       }
     ];
     identMap = ''
-      stackage_users ${name} stackage
+      stackage_users ${srvName} stackage
       stackage_users ${updateName} stackage
     '';
     authentication = ''
@@ -83,11 +83,11 @@ in {
     '';
   };
   sops.secrets = {
-    "${name}/aws_access_fpco" = {};
-    "${name}/aws_secret_fpco" = {};
-    "${name}/aws_access_r2" = {};
-    "${name}/aws_secret_r2" = {};
-    "${name}/r2_endpoint" = {};
+    "${srvName}/aws_access_fpco" = {};
+    "${srvName}/aws_secret_fpco" = {};
+    "${srvName}/aws_access_r2" = {};
+    "${srvName}/aws_secret_r2" = {};
+    "${srvName}/r2_endpoint" = {};
     "stackage.org/cloudflare-origin-cert" =
       { owner = config.services.nginx.user; };
     "stackage.org/cloudflare-origin-cert-private-key" =
@@ -104,17 +104,17 @@ in {
 
   # STACKAGE SERVER
 
-  users.groups.${name} = {
+  users.groups.${srvName} = {
     gid = stackage-uid;
   };
-  users.users.${name} = {
+  users.users.${srvName} = {
     uid = stackage-uid;
     isNormalUser = true;
-    group = name;
-    home = "/home/${name}";
+    group = srvName;
+    home = "/home/${srvName}";
     createHome = true;
   };
-  systemd.services."${name}" = mkService {
+  systemd.services."${srvName}" = mkService {
     keyName = "creds_aws_access_r2";
     secretName = "creds_aws_secret_r2";
     extraEnvironment = {
@@ -155,7 +155,7 @@ in {
     serviceConfig = {
       User = updateName;
       WorkingDirectory = "~";
-      LoadCredential = "creds:/run/secrets/${name}";
+      LoadCredential = "creds:/run/secrets/${srvName}";
       Type = "oneshot";
     };
     path = [ pkgs.git ];
