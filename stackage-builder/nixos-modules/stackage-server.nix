@@ -144,11 +144,16 @@ in {
     let myScript = pkgs.writeShellApplication {
       name = "stackage-hoogle-cleanup";
       text = ''
-        ## Delete all but the five latest directories in /home/${srvName}/hoogle.
+        ## Keep 250 most recently accessed databases for both LTS and Nightly separately.
+
         cd "/home/${srvName}/hoogle"
-        # shellcheck disable=SC2012
-        # FIXME: Keep the latest lts and nightlies both.
-        # ls --zero -1tr | head -zn -5 | xargs -0 --no-run-if-empty rm -r
+        for pattern in "./lts-*" "./nightly-*"; do
+          find . -type f -path "$pattern" -printf "%A@\t%p\0" |
+            sort -z -n | head -z -n -250 | cut -z -f2- | xargs -0 -r rm -f
+        done
+
+        # Clean up empty directories
+        find . -type d -empty -delete
       '';
       runtimeInputs = [ pkgs.coreutils pkgs.findutils ];
     };
@@ -158,6 +163,7 @@ in {
       script = lib.getExe myScript;
       serviceConfig = {
         Type = "oneshot";
+        User = srvName;
       };
     };
 
