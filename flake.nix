@@ -53,7 +53,7 @@
       ];
     };
 
-    devShell.x86_64-linux = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
+    devShells.x86_64-linux.default = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
       buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
     };
 
@@ -300,5 +300,6 @@
       curator-app = self.packages.x86_64-linux.curator;
     };
 
+    checks."x86_64-linux".test-vm = inputs.nixpkgs.legacyPackages."x86_64-linux".callPackage ./test-os.nix { inherit self; };
   };
 }
