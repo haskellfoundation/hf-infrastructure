@@ -171,11 +171,21 @@
         myPackage = "hackage-mirror-tool";
         hsOverlay = pkgs: self: super:
           let
+            # FIXME: Remove this pin when amazonka releases a version higher than 2.0
+            # which has this change included:
+            # https://github.com/brendanhay/amazonka/pull/977
+            amazonkaRepo = {
+              url = "https://github.com/brendanhay/amazonka.git";
+              rev = "85e0289f8dc23c54b00f7f1a09845be7e032a1eb";
+            };
             hackageMirrorRepo = {
               url = "https://github.com/commercialhaskell/${myPackage}.git";
               rev = "aca12a2f66d8fe29012982e7cd95ea4283e02193";
             };
           in {
+            amazonka-core = pkgs.haskell.lib.compose.overrideSrc
+              { src = "${builtins.fetchGit amazonkaRepo}/lib/amazonka-core"; }
+              super.amazonka-core;
             # Jailbreak to get around my amazonka>2.0 failsafe
             ${myPackage} = pkgs.haskell.lib.compose.doJailbreak (self.callCabal2nix
               myPackage
