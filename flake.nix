@@ -18,7 +18,7 @@
     haskell-certification.url = "github:serokell/haskell-certification";
     stackage-server.url = "github:commercialhaskell/stackage-server";
     my-curator = {
-      url = "github:commercialhaskell/curator/530549f3e86357f0e89803d8f093b37551a83301";
+      url = "github:commercialhaskell/curator/a95c1f9487b78fe77b85b3133faa1c985f79a5c3";
       flake = false;
     };
   };
@@ -262,8 +262,7 @@
       let
         myPackage = "curator";
         hsOverlay = pkgs: self: super: {
-          curator = (self.callCabal2nix "curator" my-curator { }).overrideAttrs (oldAttrs: { doCheck = false; });
-
+          curator = self.callCabal2nix "curator" my-curator { };
         };
       in final: prev: {
         myHaskellPackages = prev.haskellPackages.override {

@@ -1023,17 +1023,17 @@
     "my-curator": {
       "flake": false,
       "locked": {
-        "lastModified": 1745666782,
-        "narHash": "sha256-zziph7AMFHbbN6EZ47JwnylIaLWvyX3YfhbSFb97SSg=",
+        "lastModified": 1745669513,
+        "narHash": "sha256-CXIRSn1ACLfHWDBt9RXtyDLcSooCb7pRAWHy5Vlmg/E=",
         "owner": "commercialhaskell",
         "repo": "curator",
-        "rev": "530549f3e86357f0e89803d8f093b37551a83301",
+        "rev": "a95c1f9487b78fe77b85b3133faa1c985f79a5c3",
         "type": "github"
       },
       "original": {
         "owner": "commercialhaskell",
         "repo": "curator",
-        "rev": "530549f3e86357f0e89803d8f093b37551a83301",
+        "rev": "a95c1f9487b78fe77b85b3133faa1c985f79a5c3",
         "type": "github"
       }
     },
