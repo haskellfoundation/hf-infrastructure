@@ -1020,6 +1020,23 @@
         "type": "github"
       }
     },
+    "my-curator": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1745666782,
+        "narHash": "sha256-zziph7AMFHbbN6EZ47JwnylIaLWvyX3YfhbSFb97SSg=",
+        "owner": "commercialhaskell",
+        "repo": "curator",
+        "rev": "530549f3e86357f0e89803d8f093b37551a83301",
+        "type": "github"
+      },
+      "original": {
+        "owner": "commercialhaskell",
+        "repo": "curator",
+        "rev": "530549f3e86357f0e89803d8f093b37551a83301",
+        "type": "github"
+      }
+    },
     "n2c": {
       "inputs": {
         "flake-utils": [
@@ -1755,6 +1772,7 @@
       "inputs": {
         "disko": "disko",
         "haskell-certification": "haskell-certification",
+        "my-curator": "my-curator",
         "nixpkgs": "nixpkgs_12",
         "nixpkgs-2009": "nixpkgs-2009",
         "nixpkgs-2311": "nixpkgs-2311",

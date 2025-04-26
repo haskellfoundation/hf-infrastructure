@@ -17,8 +17,9 @@
     disko.url = "github:nix-community/disko";
     haskell-certification.url = "github:serokell/haskell-certification";
     stackage-server.url = "github:commercialhaskell/stackage-server";
+    my-curator.url = "github:commercialhaskell/curator/530549f3e86357f0e89803d8f093b37551a83301";
   };
-  outputs = inputs@{ self, ... }: {
+  outputs = inputs@{ self, my-curator, ... }: {
     # FIXME: This should have all sane defaults, not just nix stuff. E.g.
     # acme.acceptTerms, acme.defaults.email, ...
     nixosModules.nix-hygiene = ./shared/nix-hygiene.nix;
@@ -258,18 +259,8 @@
       let
         myPackage = "curator";
         hsOverlay = pkgs: self: super: {
-          ${myPackage} = pkgs.haskell.lib.buildStackProject {
-            name = myPackage;
-            src = builtins.fetchGit {
-              url = "https://github.com/commercialhaskell/${myPackage}.git";
-              rev = "558215d639561301a0069dc749896ad3e71b5c24";
-            };
-            patches = [ ./stackage-builder/curator_hackage-server-T1023.patch ];
-            ghc = pkgs.haskell.compiler.ghc947;
-            buildInputs = [ pkgs.zlib pkgs.openssl pkgs.sqlite ];
-            # FIXME: Tests have a 'Not in scope' compile error!
-            checkPhase = "";
-          };
+          curator = (self.callCabal2nix "curator" my-curator { }).overrideAttrs (oldAttrs: { doCheck = false; });
+
         };
       in final: prev: {
         myHaskellPackages = prev.haskellPackages.override {
