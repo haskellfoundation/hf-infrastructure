@@ -10,8 +10,6 @@ in {
   services.postgresql = {
     enable = true;
     ensureDatabases = [ "casa" ];
-    # The following three settings allow both services, running as their
-    # own system users, to connect to the db as dbuser "stackage".
     ensureUsers = [
       {
         name = "casa";
