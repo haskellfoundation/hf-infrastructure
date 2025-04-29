@@ -4,7 +4,6 @@ let
   maxJournald = totalMem: totalMem * 2 / 10;
 in
 {
-  system.stateVersion = "24.05";
   networking.hostName = hostName;
   networking.domain = "haskell.foundation";
   networking.hostId = hostId;
