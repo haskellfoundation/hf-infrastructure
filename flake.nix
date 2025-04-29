@@ -41,29 +41,6 @@
         inputs.haskell-certification.nixosModules.default
       ];
     };
-    nixosModules.stackage-builder = { ... }: {
-      imports = [
-        # Change this to a flake-defined nixosModule as well?
-        ./stackage-builder/configuration.nix
-        self.nixosModules.hackage-metadata-refresh
-        self.nixosModules.hackage-mirror
-        self.nixosModules.stackage-server
-        self.nixosModules.casa-server
-        self.nixosModules.stackage-curator
-        self.nixosModules.nix-hygiene
-        inputs.sops-nix.nixosModules.sops
-        {
-          security.acme.acceptTerms = true;
-          # FIXME we need a centralized address for this.
-          security.acme.defaults.email = "bryan@haskell.foundation";
-        }
-        { services.fail2ban.enable = true; }
-        # This could be a *lot* bigger, but it probably makes more sense to
-        # forward it to a central log server (even though we don't have one
-        # yet). I don't know how well journald actually handles huge logs
-        { services.journald.extraConfig = "SystemMaxSize=48GB"; }
-      ];
-    };
 
     devShells.x86_64-linux.default = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
       buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
