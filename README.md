@@ -11,25 +11,18 @@ Stackage is deployed to a NixOS server.
 The entrypoint for the server configuration is ./flake.nix.
 
 There is a lot of work to do in order to make Stackage more reliable and robust.
-The maintainers will be documenting and implementing that work in the coming
-months.
-
-## Tooling
-
-### ./redeploy.sh
-
-A wrapper around `nixos-rebuild` that provides some measure of deployment
-tracking.
-
-### ./cachix-push.sh
-
-A wrapper that pushes all component packages to a Cachix cache.
 
 ## Participation
 
 Yes, please! Please feel welcome to open issues reporting bugs, feature
 requests, or questions. Pull requests are also welcome, though I recommend
 creating an issue first.
+
+### Git preferences
+
+If possible, I (chreekat) prefer smaller commits. I usually end up doing an
+interactive rebase to clean up my branch before merging. I believe in using
+merge commits.
 
 ### Contact
 
