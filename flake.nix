@@ -17,7 +17,10 @@
     disko.url = "github:nix-community/disko";
     haskell-certification.url = "github:serokell/haskell-certification";
     stackage-server.url = "github:commercialhaskell/stackage-server";
-    my-curator.url = "github:commercialhaskell/curator/530549f3e86357f0e89803d8f093b37551a83301";
+    my-curator = {
+      url = "github:commercialhaskell/curator/530549f3e86357f0e89803d8f093b37551a83301";
+      flake = false;
+    };
   };
   outputs = inputs@{ self, my-curator, ... }: {
     # FIXME: This should have all sane defaults, not just nix stuff. E.g.
