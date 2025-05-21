@@ -14,4 +14,5 @@ in
   services.openssh.settings.PasswordAuthentication = false;
   services.openssh.startWhenNeeded = true;
   services.fail2ban.enable = true;
+  services.fwupd.enable = true;
 }

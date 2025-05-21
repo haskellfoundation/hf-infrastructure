@@ -9,6 +9,7 @@ pkgs.nixosTest {
         sops.age.keyFile = "/dev/null";
       }
     ];
+    services.fwupd.enable = true;
   };
 
   testScript = ''
