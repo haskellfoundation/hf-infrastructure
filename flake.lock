@@ -661,6 +661,22 @@
         "type": "indirect"
       }
     },
+    "hackage-mirror-tool": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1712157125,
+        "narHash": "sha256-OavioqZNfrayVJQgaANlhtCrTCqC1z9cJYMWRMuQwCU=",
+        "owner": "commercialhaskell",
+        "repo": "hackage-mirror-tool",
+        "rev": "aca12a2f66d8fe29012982e7cd95ea4283e02193",
+        "type": "github"
+      },
+      "original": {
+        "owner": "commercialhaskell",
+        "repo": "hackage-mirror-tool",
+        "type": "github"
+      }
+    },
     "hackage_2": {
       "flake": false,
       "locked": {
@@ -1771,6 +1787,7 @@
       "inputs": {
         "curator": "curator",
         "disko": "disko",
+        "hackage-mirror-tool": "hackage-mirror-tool",
         "haskell-certification": "haskell-certification",
         "nixpkgs": "nixpkgs_12",
         "nixpkgs-2009": "nixpkgs-2009",

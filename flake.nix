@@ -21,8 +21,12 @@
       url = "github:commercialhaskell/curator";
       flake = false;
     };
+    hackage-mirror-tool = {
+      url = "github:commercialhaskell/hackage-mirror-tool";
+      flake = false;
+    };
   };
-  outputs = inputs@{ self, curator, ... }: {
+  outputs = inputs@{ self, curator, hackage-mirror-tool, ... }: {
     # FIXME: This should have all sane defaults, not just nix stuff. E.g.
     # acme.acceptTerms, acme.defaults.email, ...
     nixosModules.nix-hygiene = ./shared/nix-hygiene.nix;
@@ -171,19 +175,13 @@
               url = "https://github.com/brendanhay/amazonka.git";
               rev = "85e0289f8dc23c54b00f7f1a09845be7e032a1eb";
             };
-            hackageMirrorRepo = {
-              url = "https://github.com/commercialhaskell/${myPackage}.git";
-              rev = "aca12a2f66d8fe29012982e7cd95ea4283e02193";
-            };
           in {
             amazonka-core = pkgs.haskell.lib.compose.overrideSrc
               { src = "${builtins.fetchGit amazonkaRepo}/lib/amazonka-core"; }
               super.amazonka-core;
             # Jailbreak to get around my amazonka>2.0 failsafe
-            ${myPackage} = pkgs.haskell.lib.compose.doJailbreak (self.callCabal2nix
-              myPackage
-              (builtins.fetchGit hackageMirrorRepo)
-              {});
+            ${myPackage} = pkgs.haskell.lib.compose.doJailbreak
+              (self.callCabal2nix myPackage hackage-mirror-tool {});
           };
       in final: prev: {
         myHaskellPackages = prev.haskellPackages.override {
