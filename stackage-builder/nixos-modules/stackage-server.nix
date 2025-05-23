@@ -1,4 +1,5 @@
 # Defines stackage.service, stackage-update.service, and stackage-update.timer.
+# Also includes a health check and auto-restart mechanism for stackage.service.
 #
 # stackage-update.service runs stackage-server-cron to keep the Stackage website
 # up to date.
@@ -43,6 +44,8 @@ let
         RestartSec = 1;
         LoadCredential = "creds:/run/secrets/${srvName}";
         WorkingDirectory = workDir;
+        # If stackage-server supports it, Type=notify and WatchdogSec=30s would be ideal.
+        # Since it likely doesn't, we use an external timer-based check.
       };
       path = [ pkgs.git ];
       environment = {
@@ -121,6 +124,59 @@ in {
       DOWNLOAD_BUCKET_URL = "https://stackage-haddock.haskell.org";
     };
   };
+
+  # HEALTH CHECK AND AUTO-RESTART MECHANISM FOR STACKAGE SERVER
+  systemd.services."${srvName}-healthcheck" = {
+    description = "Health check for ${srvName}";
+    documentation = [ "man:curl(1)" ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "nobody";
+      Group = "nogroup";
+    };
+    script = ''
+      # Check if the server responds with HTTP 2xx or 3xx on its root path.
+      # Assumes stackage-server runs on localhost:3000.
+      # If a dedicated /health or /ping endpoint exists, use that instead of '/'.
+      # Increased timeout to 10 seconds for potentially slow first responses.
+      if ${pkgs.curl}/bin/curl --fail --silent --show-error --max-time 10 "http://localhost:3000/" > /dev/null; then
+        echo "${srvName} (http://localhost:3000/) health check successful."
+        exit 0
+      else
+        STATUS=$?
+        echo "${srvName} (http://localhost:3000/) health check failed with curl exit code $STATUS!"
+        exit $STATUS
+      fi
+    '';
+    # If this health check service fails, trigger the restarter service.
+    OnFailure = [ "${srvName}-restarter.service" ];
+  };
+
+  systemd.services."${srvName}-restarter" = {
+    description = "Restarter for ${srvName} after health check failure";
+    serviceConfig = {
+      Type = "oneshot";
+      # This service runs as root by default (since no User= is specified),
+      # which has the necessary permissions to restart other services.
+    };
+    script = ''
+      echo "Attempting to restart ${srvName}.service due to a failed health check."
+      ${pkgs.systemd}/bin/systemctl restart ${srvName}.service
+    '';
+  };
+
+  systemd.timers."${srvName}-healthcheck" = {
+    description = "Timer to periodically run health check for ${srvName}";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      Unit = "${srvName}-healthcheck.service";
+      OnBootSec = "1min";
+      OnUnitActiveSec = "5min"; # Check every 5 minutes
+      AccuracySec = "1s";
+    };
+  };
+  # END HEALTH CHECK MECHANISM
+
   services.nginx.virtualHosts =
     let
       stackageProxy = { port ? 3000 }: {
