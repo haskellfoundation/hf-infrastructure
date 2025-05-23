@@ -17,12 +17,12 @@
     disko.url = "github:nix-community/disko";
     haskell-certification.url = "github:serokell/haskell-certification";
     stackage-server.url = "github:commercialhaskell/stackage-server";
-    my-curator = {
-      url = "github:commercialhaskell/curator/a95c1f9487b78fe77b85b3133faa1c985f79a5c3";
+    curator = {
+      url = "github:commercialhaskell/curator";
       flake = false;
     };
   };
-  outputs = inputs@{ self, my-curator, ... }: {
+  outputs = inputs@{ self, curator, ... }: {
     # FIXME: This should have all sane defaults, not just nix stuff. E.g.
     # acme.acceptTerms, acme.defaults.email, ...
     nixosModules.nix-hygiene = ./shared/nix-hygiene.nix;
@@ -260,9 +260,8 @@
     # casa-server nixos module below.
     overlays.curator =
       let
-        myPackage = "curator";
         hsOverlay = pkgs: self: super: {
-          curator = self.callCabal2nix "curator" my-curator { };
+          curator = self.callCabal2nix "curator" curator { };
         };
       in final: prev: {
         myHaskellPackages = prev.haskellPackages.override {
