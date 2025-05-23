@@ -44,5 +44,7 @@ in
   };
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 
+  services.fwupd.enable = true;
+
   system.stateVersion = "24.05";
 }
