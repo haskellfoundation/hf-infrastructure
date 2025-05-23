@@ -138,6 +138,44 @@ in {
     };
   networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
+  # Clean up stackage-server's extraneous hoogle files.
+
+  systemd.services.stackage-hoogle-cleanup =
+    let myScript = pkgs.writeShellApplication {
+      name = "stackage-hoogle-cleanup";
+      text = ''
+        ## Keep 250 most recently accessed databases for both LTS and Nightly separately.
+
+        cd "/home/${srvName}/hoogle"
+        for pattern in "./lts-*" "./nightly-*"; do
+          find . -type f -path "$pattern" -printf "%A@\t%p\0" |
+            sort -z -n | head -z -n -250 | cut -z -f2- | xargs -0 -r rm -f
+        done
+
+        # Clean up empty directories
+        find . -type d -empty -delete
+      '';
+      runtimeInputs = [ pkgs.coreutils pkgs.findutils ];
+    };
+    in
+    {
+      description = "Stackage server hoogle cleanup";
+      script = lib.getExe myScript;
+      serviceConfig = {
+        Type = "oneshot";
+        User = srvName;
+      };
+    };
+
+  systemd.timers.stackage-hoogle-cleanup = {
+    description = "Run stackage-hoogle-cleanup every day";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
+
   # STACKAGE UPDATER
 
   users.groups.${updateName} = {
