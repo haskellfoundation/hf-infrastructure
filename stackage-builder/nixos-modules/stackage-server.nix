@@ -155,11 +155,11 @@ in {
     };
     script = ''
       # 10 second timeout for potentially slow first responses.
-      if ${pkgs.curl}/bin/curl --location --fail-with-body --silent --show-error --max-time 10 "http://localhost:${stackagePort}/lts" > /dev/null; then
+      if ${pkgs.curl}/bin/curl --location --fail-with-body --silent --show-error --max-time 10 "http://localhost:${toString stackagePort}/lts" > /dev/null; then
         exit 0
       else
         STATUS=$?
-        echo "${srvName} (http://localhost:${stackagePort}/) health check failed with curl exit code $STATUS!"
+        echo "${srvName} (http://localhost:${toString stackagePort}/) health check failed with curl exit code $STATUS!"
         exit $STATUS
       fi
     '';
