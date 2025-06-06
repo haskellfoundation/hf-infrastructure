@@ -25,6 +25,8 @@
 let
   srvName = "stackage-server";
   updateName = "stackage-update";
+  restarterName = "stackage-restarter";
+  stackagePort = 3000;
   mkService =
     { description ? "Stackage server"
     , workDir ? "~"
@@ -125,34 +127,47 @@ in {
     };
   };
 
+  services.nginx.virtualHosts =
+    let
+      stackageProxy = { port }: {
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://localhost:${toString port}";
+          recommendedProxySettings = true;
+        };
+      };
+    in {
+      "www.stackage.org" = (stackageProxy { port = stackagePort; }) // {
+        sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
+        sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
+      };
+    };
+  networking.firewall.allowedTCPPorts = [ 22 80 443 ];
+
   # HEALTH CHECK AND AUTO-RESTART MECHANISM FOR STACKAGE SERVER
+
   systemd.services."${srvName}-healthcheck" = {
     description = "Health check for ${srvName}";
-    documentation = [ "man:curl(1)" ];
     serviceConfig = {
       Type = "oneshot";
       User = "nobody";
       Group = "nogroup";
     };
     script = ''
-      # Check if the server responds with HTTP 2xx or 3xx on its root path.
-      # Assumes stackage-server runs on localhost:3000.
-      # If a dedicated /health or /ping endpoint exists, use that instead of '/'.
-      # Increased timeout to 10 seconds for potentially slow first responses.
-      if ${pkgs.curl}/bin/curl --fail --silent --show-error --max-time 10 "http://localhost:3000/" > /dev/null; then
-        echo "${srvName} (http://localhost:3000/) health check successful."
+      # 10 second timeout for potentially slow first responses.
+      if ${pkgs.curl}/bin/curl --location --fail-with-body --silent --show-error --max-time 10 "http://localhost:${stackagePort}/lts" > /dev/null; then
         exit 0
       else
         STATUS=$?
-        echo "${srvName} (http://localhost:3000/) health check failed with curl exit code $STATUS!"
+        echo "${srvName} (http://localhost:${stackagePort}/) health check failed with curl exit code $STATUS!"
         exit $STATUS
       fi
     '';
     # If this health check service fails, trigger the restarter service.
-    OnFailure = [ "${srvName}-restarter.service" ];
+    onFailure = [ "${restarterName}.service" ];
   };
 
-  systemd.services."${srvName}-restarter" = {
+  systemd.services."${restarterName}" = {
     description = "Restarter for ${srvName} after health check failure";
     serviceConfig = {
       Type = "oneshot";
@@ -172,27 +187,8 @@ in {
       Unit = "${srvName}-healthcheck.service";
       OnBootSec = "1min";
       OnUnitActiveSec = "5min"; # Check every 5 minutes
-      AccuracySec = "1s";
     };
   };
-  # END HEALTH CHECK MECHANISM
-
-  services.nginx.virtualHosts =
-    let
-      stackageProxy = { port ? 3000 }: {
-        forceSSL = true;
-        locations."/" = {
-          proxyPass = "http://localhost:${toString port}";
-          recommendedProxySettings = true;
-        };
-      };
-    in {
-      "www.stackage.org" = (stackageProxy {}) // {
-        sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
-        sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
-      };
-    };
-  networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
   # STACKAGE UPDATER
 
