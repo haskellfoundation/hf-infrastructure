@@ -50,10 +50,6 @@
       ];
     };
 
-    devShells.x86_64-linux.default = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
-      buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
-    };
-
     ##
     ## STACKAGE CURATOR
     ##
@@ -278,6 +274,10 @@
       casa-updater-uid = 1008;
       casa-app = self.packages.x86_64-linux.casa;
       curator-app = self.packages.x86_64-linux.curator;
+    };
+
+    devShells.x86_64-linux.default = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
+      buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
     };
 
     checks."x86_64-linux".test-vm = inputs.nixpkgs.legacyPackages."x86_64-linux".callPackage ./test-os.nix { inherit self; };
