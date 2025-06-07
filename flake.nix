@@ -55,6 +55,14 @@
     ##
 
     nixosModules.stackage-curator = ./stackage-builder/nixos-modules/stackage-curator.nix;
+    nixosModules.stackage-builder = {
+      imports = [
+        self.nixosModules.casa-server
+        self.nixosModules.hackage-mirror
+        self.nixosModules.stackage-curator
+        self.nixosModules.stackage-server
+      ];
+    };
 
     ##
     ## HACKAGE METADATA REFRESH
@@ -283,6 +291,6 @@
       curator-app = self.packages.x86_64-linux.curator;
     };
 
-    checks."x86_64-linux".test-vm = inputs.nixpkgs.legacyPackages."x86_64-linux".callPackage ./test-os.nix { inherit self; };
+    checks."x86_64-linux".test-vm = inputs.nixpkgs.legacyPackages."x86_64-linux".callPackage ./test-os.nix { inherit self inputs; };
   };
 }
