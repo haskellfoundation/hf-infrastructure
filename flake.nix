@@ -11,6 +11,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
     nixpkgs-2311.url = "github:nixos/nixpkgs/nixos-23.11";
+
     # LTS 15.6 (GHC 8.8.3)
     nixpkgs-2009.url = "github:nixos/nixpkgs/nixos-20.09";
     sops-nix.url = "github:Mic92/sops-nix";
@@ -25,6 +26,7 @@
       url = "github:commercialhaskell/hackage-mirror-tool";
       flake = false;
     };
+    all-cabal-tool.url = "github:commercialhaskell/all-cabal-tool";
   };
   outputs = inputs@{ self, curator, hackage-mirror-tool, ... }: {
     # FIXME: This should have all sane defaults, not just nix stuff. E.g.
@@ -61,35 +63,6 @@
     ##
 
     # FIXME extract from flake.nix, as above
-
-    # This overlay is only used to define the all-cabal-tool package. It's only
-    # exposed because it can be.
-    overlays.all-cabal-tool =
-      let
-        myPackage = "all-cabal-tool";
-        hsOverlay = pkgs: self: super: {
-          ${myPackage} = pkgs.haskell.lib.buildStackProject {
-            name = myPackage;
-            src = builtins.fetchGit {
-              url = "https://github.com/commercialhaskell/${myPackage}.git";
-              rev = "189c8fc25859c59808974a5a4b6d1cf7526bda1a";
-            };
-            ghc = pkgs.haskell.compiler.ghc963;
-            buildInputs = [ pkgs.zlib ];
-            patches = [ ./stackage-builder/all-cabal-tool_lts-22.4.patch ];
-          };
-        };
-      in final: prev: {
-        myHaskellPackages = prev.haskellPackages.override {
-          overrides = hsOverlay final;
-        };
-      };
-    packages.x86_64-linux.all-cabal-tool =
-      let
-        myPkgs = import inputs.nixpkgs-2311 {
-          system = "x86_64-linux"; overlays = [ self.overlays.all-cabal-tool ];
-        };
-      in myPkgs.myHaskellPackages.all-cabal-tool;
 
     # This module wraps all-cabal-tool into a systemd service.
     nixosModules.hackage-metadata-refresh = { lib, config, pkgs, ... }:
@@ -139,7 +112,7 @@
             ];
           };
           script = ''
-              ${self.packages.x86_64-linux.all-cabal-tool}/bin/all-cabal-tool \
+              ${inputs.all-cabal-tool.packages.x86_64-linux.all-cabal-tool}/bin/all-cabal-tool \
                 --username all-cabal-tool \
                 --email michael+all-cabal-files@snoyman.com \
                 --gpg-sign D6CF60FD \
