@@ -1,16 +1,8 @@
-let
-  # From `free -b`
-  mem = 8133238784;
-  hostName = "hf-cert-1";
-  hostId = "57de31ac"; # head -c4 /dev/urandom | od -A none -t x4
-
-in
 { config, ... }: {
   imports =
     [
       ./hardware-configuration.nix
-      (import ./disk-config.nix { systemMemory = mem; })
-      (import ../system-common.nix { inherit hostName mem hostId; })
+      ./disk-config.nix
     ];
 
   services.haskell-certification = {

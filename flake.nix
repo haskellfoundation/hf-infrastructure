@@ -29,9 +29,7 @@
     all-cabal-tool.url = "github:commercialhaskell/all-cabal-tool";
   };
   outputs = inputs@{ self, curator, hackage-mirror-tool, ... }: {
-    # FIXME: This should have all sane defaults, not just nix stuff. E.g.
-    # acme.acceptTerms, acme.defaults.email, ...
-    nixosModules.nix-hygiene = ./shared/nix-hygiene.nix;
+    nixosModules.system-common = ./modules/system-common.nix;
 
     # FIXME: Rather than define the whole system as a module here, just expose
     # the services as modules.
@@ -45,7 +43,12 @@
     nixosModules.hf-cert-1 = {
       imports = [
         ./hf-cert-1
-        self.nixosModules.nix-hygiene
+        self.nixosModules.system-common
+        {
+          hardware.systemMemory = 8133238784; # From `free -b`
+          networking.hostName = "hf-cert-1";
+          networking.hostId = "57de31ac"; # head -c4 /dev/urandom | od -A none -t x4
+        }
         inputs.disko.nixosModules.disko
         inputs.sops-nix.nixosModules.sops
         inputs.haskell-certification.nixosModules.default

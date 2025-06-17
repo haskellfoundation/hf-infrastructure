@@ -1,4 +1,4 @@
-{ systemMemory }:
+{ config, ... }:
 {
   disko.devices = {
     disk = {
@@ -64,6 +64,6 @@
   # 90% of the total memory
   #
   # This server is 100% ZFS, so it makes sense to allow a huge zfs cache.
-  boot.kernelParams = ["zfs.zfs_arc_max=${toString (systemMemory * 9 / 10)}"];
+  boot.kernelParams = ["zfs.zfs_arc_max=${toString (config.hardware.systemMemory * 9 / 10)}"];
 
 }
