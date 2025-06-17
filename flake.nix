@@ -31,15 +31,6 @@
   outputs = inputs@{ self, curator, hackage-mirror-tool, ... }: {
     nixosModules.system-common = ./modules/system-common.nix;
 
-    # FIXME: Rather than define the whole system as a module here, just expose
-    # the services as modules.
-    #
-    # My old strategy was to try to define *everything* in this repo, so that
-    # the private deployment repo would be a very thin shim that adds secrets.
-    # But that proved too inflexible. My new strategy is to just define the
-    # services here, and put the whole systems together in the deployment repo.
-    # This has already been done for stackage, but still needs to be done for
-    # hf-cert-1.
     nixosModules.hf-cert-1 = {
       imports = [
         ./hf-cert-1
