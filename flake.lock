@@ -1895,11 +1895,11 @@
         "nixpkgs": "nixpkgs_15"
       },
       "locked": {
-        "lastModified": 1750166625,
-        "narHash": "sha256-DiNuj/NQXNU/JJmj1e7zeN1Fnk59LzuqNu/uchgIa6s=",
+        "lastModified": 1750318455,
+        "narHash": "sha256-2NrMrOeClW4jpLkduSOLn5N3QUMf0aNbPIMuIMaLz5U=",
         "owner": "commercialhaskell",
         "repo": "stackage-server",
-        "rev": "a2cc25d6f02968e0edcfb42d1210d1680b2bcf8e",
+        "rev": "f5dac7092f6ba8689621b93c222235ccc00f28b1",
         "type": "github"
       },
       "original": {
