@@ -4,7 +4,7 @@ The mission for this repository is to store all configuration, tooling, and
 documentation for deploying Stackage.org and other Haskell Foundation-managed
 infrastructure.
 
-## Status (Stackage)
+## Implementation Status (Stackage)
 
 Stackage is deployed to a NixOS server.
 
@@ -50,3 +50,14 @@ This repo is a work of the [Haskell Foundation](https://haskell.foundation).
 
 The initial version was implemented by Bryan Richter (@chreekat) in his capacity
 as the Haskell Foundation's DevOps Engineer.
+
+## Incidents
+
+Public logs of infrastructure outages are tracked in issues labeled "incident".
+
+https://github.com/commercialhaskell/stackage-server/issues?q=is%3Aissue%20label%3Aincident
+
+Some issues were originally reported on stackage-server, so you'll find
+incidents there, as well:
+
+https://github.com/commercialhaskell/stackage-server/issues?q=is%3Aissue%20label%3Aincident
