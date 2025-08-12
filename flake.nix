@@ -9,7 +9,7 @@
   ];
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-2311.url = "github:nixos/nixpkgs/nixos-23.11";
 
     # LTS 15.6 (GHC 8.8.3)
