@@ -30,6 +30,7 @@
   };
   outputs = inputs@{ self, curator, hackage-mirror-tool, ... }: {
     nixosModules.system-common = ./modules/system-common.nix;
+    nixosModules.monitoring = ./modules/monitoring.nix;
 
     nixosModules.hf-cert-1 = {
       imports = [
