@@ -36,11 +36,11 @@ in
       cpu = {};
       mem = {};
 
-      # not useful to us since we're zfs'd
-      # disk = {};
-      # IO stats. Maybe we can just use zfs for this, too. Yeah, zfs_pool
-      # nread/nwritten
-      #diskio = {};
+      # iowait, iotime and reads, writes. zfspool also has the latter, but not
+      # the former.
+      diskio = {};
+      # Maybe duplicates stuff in zfs or zfs_pool - we'll see.
+      disk = {};
 
       # Causes a segfault lol
       #postgresql = {};
@@ -85,6 +85,7 @@ in
   services.grafana = {
     enable = true;
     settings.server.http_port = 8600;
+    settings."auth.anonymous".enabled = true;
 
     provision = {
       enable = true;
