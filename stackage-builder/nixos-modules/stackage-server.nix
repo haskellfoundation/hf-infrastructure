@@ -61,10 +61,11 @@ let
         export AWS_ACCESS_KEY_ID="$(< "$CREDENTIALS_DIRECTORY/${keyName}")"
         export AWS_SECRET_ACCESS_KEY="$(< "$CREDENTIALS_DIRECTORY/${secretName}")"
 
-        # FIXME: RTS flags copied from FPCo deployment. Maybe not suitable
-        # for ours. Note also the server is never idle for 3 seconds, so -I3
-        # basically just turns off the idle GC.
-        ${stackage-server-app}/bin/stackage-server +RTS -I3 -N1
+        # 30 is a random choice. The server has 72 cores.
+        # While checking just now, I see that the server has 1G resident. The
+        # server has 178G available.
+        # We may consider setting -A at some point.
+        ${stackage-server-app}/bin/stackage-server +RTS -N30 -H2G -M160G -RTS"
       '' else script;
     };
 in {
