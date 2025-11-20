@@ -65,7 +65,7 @@ let
         # While checking just now, I see that the server has 1G resident. The
         # server has 178G available.
         # We may consider setting -A at some point.
-        ${stackage-server-app}/bin/stackage-server +RTS -N30 -H2G -M160G -RTS"
+        ${stackage-server-app}/bin/stackage-server +RTS -N30 -H2G -M160G -RTS
       '' else script;
     };
 in {
