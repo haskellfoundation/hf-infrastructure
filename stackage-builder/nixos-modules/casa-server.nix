@@ -50,8 +50,12 @@ in {
       AUTHORIZED_PORT = toString privatePushPort;
     };
     script = ''
-      # RTS flags copied from FPCo deployment.
-      ${casa-app}/bin/casa-server +RTS -I3 -N1
+      # Previously we had -N1, copied from the old deployment. It seemed to be
+      # working fine, so I'll just bump it a little bit to be on the safe side
+      # (cf. the similar change to stackage-server).
+      #
+      # The process had 1.2G resident when I checked.
+      ${casa-app}/bin/casa-server +RTS -N10 -H2G
     '';
   };
   services.nginx.enable = true;
