@@ -202,11 +202,11 @@
     "curator": {
       "flake": false,
       "locked": {
-        "lastModified": 1747980701,
-        "narHash": "sha256-5n2vXi/sUhrhXfLCPFooaVkh9z1EB02sdctJZPpSGsE=",
+        "lastModified": 1765537136,
+        "narHash": "sha256-1bfZu9nS8UvgmPL6RIjEmB17ZRJs2+o4owUw2AyDChU=",
         "owner": "commercialhaskell",
         "repo": "curator",
-        "rev": "a5ec7062d97a460db0d8c4a61b240fd3e51fa5e8",
+        "rev": "9b711e4c71f730cf2ba02cf928882486b27b65a5",
         "type": "github"
       },
       "original": {
