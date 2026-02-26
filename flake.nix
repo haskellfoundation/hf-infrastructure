@@ -248,6 +248,6 @@
       buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
     };
 
-    checks."x86_64-linux".test-vm = inputs.nixpkgs.legacyPackages."x86_64-linux".callPackage ./test-os.nix { inherit self; };
+    checks."x86_64-linux".test-vm = inputs.nixpkgs.legacyPackages."x86_64-linux".callPackage ./test-os.nix { inherit self inputs; };
   };
 }
