@@ -18,7 +18,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: cachix/install-nix-action@v30
+      - uses: cachix/install-nix-action@v31
 
       - uses: cachix/cachix-action@v15
         with:
