@@ -17,7 +17,7 @@ jobs:
         run: nix flake update
 
       - name: Create PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "nix flake update"
           title: "nix flake update"
