@@ -24,5 +24,7 @@ jobs:
         with:
           name: stackage-infrastructure
 
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+
       - name: Check flake
         run: nix flake check
