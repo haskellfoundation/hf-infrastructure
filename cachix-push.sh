@@ -20,6 +20,13 @@ nix --option allow-import-from-derivation true flake show --json "$flake" \
     | jq -r '.[].outputs.out ' \
     | cachix push "$cache"
 
+nix --option allow-import-from-derivation true flake show --json "$flake" \
+    | jq -r  '.checks."x86_64-linux"|keys|.[]' \
+    | sed 's/^/.#checks.x86_64-linux./' \
+    | xargs nix build --no-link --json \
+    | jq -r '.[].outputs.out ' \
+    | cachix push "$cache"
+
 
 profileDir=$(mktemp -d)
 # shellcheck disable=SC2064
