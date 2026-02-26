@@ -37,11 +37,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1749398102,
-        "narHash": "sha256-YSat9W6s/wta2XbwKXTVPpp2rVd/2nmqI8OLzKlBfhI=",
+        "lastModified": 1771998920,
+        "narHash": "sha256-Tg9RsCd27+7AHQ+hpHTueTTyFP0sn47SbHS3cn3C5rg=",
         "owner": "commercialhaskell",
         "repo": "all-cabal-tool",
-        "rev": "484bda0c677a748562ba7c7ce84eabefa5124f39",
+        "rev": "eac6bd1aada85afd821be587fe71af2e42370ad7",
         "type": "github"
       },
       "original": {
@@ -1266,17 +1266,17 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1735224114,
-        "narHash": "sha256-JhTqVNZqs+daWuoHtcQQozvxdvUMxzfCgt0yO4/+1EA=",
+        "lastModified": 1771848320,
+        "narHash": "sha256-0MAd+0mun3K/Ns8JATeHT1sX28faLII5hVLq0L3BdZU=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "69e7105d5d8bff9e0cb1718d4a76a54aa9210f98",
+        "rev": "2fc6539b481e1d2569f25f8799236694180c0993",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
-        "rev": "69e7105d5d8bff9e0cb1718d4a76a54aa9210f98",
         "type": "github"
       }
     },
