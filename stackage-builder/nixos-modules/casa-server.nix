@@ -31,6 +31,14 @@ in {
       type = lib.types.package;
       description = "The curator package (provides casa-curator)";
     };
+
+    tls = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable TLS with Cloudflare origin certificates";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -45,7 +53,7 @@ in {
       ];
     };
     # FIXME: Start using origin domain + certbot rather than an origin cert.
-    sops.secrets = {
+    sops.secrets = lib.mkIf cfg.tls.enable {
       "stackage.org/cloudflare-origin-cert" =
         { owner = config.services.nginx.user; };
       "stackage.org/cloudflare-origin-cert-private-key" =
@@ -89,11 +97,12 @@ in {
     services.nginx.enable = true;
     services.nginx.virtualHosts = {
       ${vhostStackageOrg} = {
-        forceSSL = true;
+        forceSSL = cfg.tls.enable;
         locations."/" = {
           proxyPass = "http://localhost:${toString publicPort}";
           recommendedProxySettings = true;
         };
+      } // lib.optionalAttrs cfg.tls.enable {
         # FIXME: Start using origin domain + certbot rather than an origin cert.
         sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
         sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
