@@ -5,32 +5,16 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1771998920,
-        "narHash": "sha256-Tg9RsCd27+7AHQ+hpHTueTTyFP0sn47SbHS3cn3C5rg=",
+        "lastModified": 1772544519,
+        "narHash": "sha256-JcQO5PTCkWFThxi0OB9OiqD0a46vOgnOrAjd5LCy3Rk=",
         "owner": "commercialhaskell",
         "repo": "all-cabal-tool",
-        "rev": "eac6bd1aada85afd821be587fe71af2e42370ad7",
+        "rev": "272ffabbf8a30271f3f2410b1f323335b41ceb42",
         "type": "github"
       },
       "original": {
         "owner": "commercialhaskell",
         "repo": "all-cabal-tool",
-        "type": "github"
-      }
-    },
-    "curator": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1772528199,
-        "narHash": "sha256-6b+ubODV+1yeR87Lo4DgBkfoPOy4HzGFzppM5e9eVAE=",
-        "owner": "commercialhaskell",
-        "repo": "curator",
-        "rev": "bc9c3be50745ea834e8196ef40c7aef250e37535",
-        "type": "github"
-      },
-      "original": {
-        "owner": "commercialhaskell",
-        "repo": "curator",
         "type": "github"
       }
     },
@@ -199,7 +183,6 @@
     "root": {
       "inputs": {
         "all-cabal-tool": "all-cabal-tool",
-        "curator": "curator",
         "disko": "disko",
         "hackage-mirror-tool": "hackage-mirror-tool",
         "nixpkgs": "nixpkgs_3",
