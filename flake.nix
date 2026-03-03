@@ -16,7 +16,6 @@
     nixpkgs-2009.url = "github:nixos/nixpkgs/nixos-20.09";
     sops-nix.url = "github:Mic92/sops-nix";
     disko.url = "github:nix-community/disko";
-    haskell-certification.url = "github:serokell/haskell-certification";
     stackage-server.url = "github:commercialhaskell/stackage-server";
     curator = {
       url = "github:commercialhaskell/curator";
@@ -36,14 +35,9 @@
       imports = [
         ./hf-cert-1
         self.nixosModules.system-common
-        {
-          hardware.systemMemory = 8133238784; # From `free -b`
-          networking.hostName = "hf-cert-1";
-          networking.hostId = "57de31ac"; # head -c4 /dev/urandom | od -A none -t x4
-        }
         inputs.disko.nixosModules.disko
         inputs.sops-nix.nixosModules.sops
-        inputs.haskell-certification.nixosModules.default
+        # haskell-certification module imported by deployment repo
       ];
     };
 

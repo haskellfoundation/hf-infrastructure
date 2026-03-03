@@ -5,11 +5,8 @@
       ./disk-config.nix
     ];
 
-  services.haskell-certification = {
-    enable = true;
-    environmentFile = config.sops.secrets.cert_env_file.path;
-    externalUri = "https://certification.haskell.foundation";
-  };
+  # services.haskell-certification configured in deployment repo
+  # (requires private haskell-certification flake input)
 
   services.postgresql = {
     enable = true;
