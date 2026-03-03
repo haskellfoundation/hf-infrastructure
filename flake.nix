@@ -237,12 +237,7 @@
         };
       in myPkgs.myHaskellPackages.curator;
 
-    nixosModules.casa-server = import ./stackage-builder/nixos-modules/casa-server.nix {
-      casa-uid = 1007;
-      casa-updater-uid = 1008;
-      casa-app = self.packages.x86_64-linux.casa;
-      curator-app = self.packages.x86_64-linux.curator;
-    };
+    nixosModules.casa-server = ./stackage-builder/nixos-modules/casa-server.nix;
 
     devShells.x86_64-linux.default = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
       buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
