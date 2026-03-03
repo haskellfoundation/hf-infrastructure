@@ -17,19 +17,16 @@
     sops-nix.url = "github:Mic92/sops-nix";
     disko.url = "github:nix-community/disko";
     stackage-server.url = "github:commercialhaskell/stackage-server";
-    curator = {
-      url = "github:commercialhaskell/curator";
-      flake = false;
-    };
     hackage-mirror-tool = {
       url = "github:commercialhaskell/hackage-mirror-tool";
       flake = false;
     };
     all-cabal-tool.url = "github:commercialhaskell/all-cabal-tool";
   };
-  outputs = inputs@{ self, curator, hackage-mirror-tool, ... }: {
+  outputs = inputs@{ self, hackage-mirror-tool, ... }: {
     nixosModules.system-common = ./modules/system-common.nix;
     nixosModules.monitoring = ./modules/monitoring.nix;
+    nixosModules.stackage-curator = ./stackage-builder/nixos-modules/stackage-curator.nix;
 
     nixosModules.hf-cert-1 = {
       imports = [
@@ -40,12 +37,6 @@
         # haskell-certification module imported by deployment repo
       ];
     };
-
-    ##
-    ## STACKAGE CURATOR
-    ##
-
-    nixosModules.stackage-curator = ./stackage-builder/nixos-modules/stackage-curator.nix;
 
     ##
     ## HACKAGE METADATA REFRESH
@@ -210,26 +201,6 @@
           system = "x86_64-linux"; overlays = [ self.overlays.casa ];
         };
       in myPkgs.myHaskellPackages.casa;
-
-    # Just used to define the curator package. This package has both "curator",
-    # used by curators manually, and "casa-curator", which I'll set up in the
-    # casa-server nixos module below.
-    overlays.curator =
-      let
-        hsOverlay = pkgs: self: super: {
-          curator = self.callCabal2nix "curator" curator { };
-        };
-      in final: prev: {
-        myHaskellPackages = prev.haskellPackages.override {
-          overrides = hsOverlay final;
-        };
-      };
-    packages.x86_64-linux.curator =
-      let
-        myPkgs = import inputs.nixpkgs-2311 {
-          system = "x86_64-linux"; overlays = [ self.overlays.curator ];
-        };
-      in myPkgs.myHaskellPackages.curator;
 
     nixosModules.casa-server = ./stackage-builder/nixos-modules/casa-server.nix;
 
