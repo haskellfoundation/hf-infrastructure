@@ -27,6 +27,8 @@
     nixosModules.system-common = ./modules/system-common.nix;
     nixosModules.monitoring = ./modules/monitoring.nix;
     nixosModules.stackage-curator = ./stackage-builder/nixos-modules/stackage-curator.nix;
+    nixosModules.hackage-metadata-refresh = ./stackage-builder/nixos-modules/hackage-metadata-refresh.nix;
+
 
     nixosModules.hf-cert-1 = {
       imports = [
@@ -36,72 +38,6 @@
         inputs.sops-nix.nixosModules.sops
         # haskell-certification module imported by deployment repo
       ];
-    };
-
-    ##
-    ## HACKAGE METADATA REFRESH
-    ##
-
-    # FIXME extract from flake.nix, as above
-
-    # This module wraps all-cabal-tool into a systemd service.
-    nixosModules.hackage-metadata-refresh = { lib, config, pkgs, ... }:
-      let
-        name = "hackage-metadata-refresh";
-        mkRuntimeSecrets = keys:
-          lib.attrsets.genAttrs
-            (map (k: "${name}/runtime/${k}") keys)
-            (_: { owner = name; });
-      in {
-        programs.ssh.knownHostsFiles = [ ./github_host_keys ];
-        users.groups.${name} = {
-          gid = 1003;
-        };
-        users.users.${name} = {
-          uid = 1003;
-          isNormalUser = true;
-          group = name;
-          home = "/home/${name}";
-          createHome = true;
-        };
-        sops.secrets = {
-          "${name}/ssh_key" = {
-            owner = name;
-            path = "/home/${name}/.ssh/id_rsa";
-          };
-        } // mkRuntimeSecrets
-          [ "aws_access"
-            "aws_secret"
-            "s3_bucket"
-          ];
-        systemd.services.${name} = {
-          description = "Refresh hackage metadata";
-          wantedBy = [ "multi-user.target" ];
-          wants = [ "network.target" ];
-          after = [ "network.target" ];
-          serviceConfig = {
-            User = name;
-            Restart = "on-failure";
-            RestartSec = 1;
-            LoadCredential = "creds:/run/secrets/${name}/runtime";
-            # sop.secrets provides ~/.gnupg/secring.gpg, but with wrong
-            # permissions. Fix before starting the unit.
-            ExecStartPre = [
-              "+${pkgs.coreutils}/bin/chmod 700 /home/${name}/.gnupg"
-              "+${pkgs.coreutils}/bin/chown ${name}:${name} /home/${name}/.gnupg"
-            ];
-          };
-          script = ''
-              ${inputs.all-cabal-tool.packages.x86_64-linux.all-cabal-tool}/bin/all-cabal-tool \
-                --username all-cabal-tool \
-                --email michael+all-cabal-files@snoyman.com \
-                --gpg-sign D6CF60FD \
-                --s3-bucket "$(< "$CREDENTIALS_DIRECTORY/creds_s3_bucket")" \
-                --aws-access-key "$(< "$CREDENTIALS_DIRECTORY/creds_aws_access")" \
-                --aws-secret-key "$(< "$CREDENTIALS_DIRECTORY/creds_aws_secret")"
-          '';
-          path = [ pkgs.git pkgs.gnupg pkgs.openssh ];
-        };
     };
 
     ##
