@@ -9,19 +9,24 @@
   ];
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-2311.url = "github:nixos/nixpkgs/nixos-23.11";
 
     # LTS 15.6 (GHC 8.8.3)
     nixpkgs-2009.url = "github:nixos/nixpkgs/nixos-20.09";
-    sops-nix.url = "github:Mic92/sops-nix";
-    disko.url = "github:nix-community/disko";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     stackage-server.url = "github:commercialhaskell/stackage-server";
     hackage-mirror-tool = {
       url = "github:commercialhaskell/hackage-mirror-tool";
       flake = false;
     };
-    all-cabal-tool.url = "github:commercialhaskell/all-cabal-tool";
   };
   outputs = inputs@{ self, hackage-mirror-tool, ... }: {
     nixosModules.system-common = ./modules/system-common.nix;

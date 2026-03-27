@@ -1,6 +1,6 @@
 { self, inputs, pkgs }:
 
-pkgs.nixosTest {
+pkgs.testers.nixosTest {
   name = "stackage-test";
   nodes.machine = { ... }: {
     imports = [
@@ -21,6 +21,11 @@ pkgs.nixosTest {
           tls.enable = false;
           package = pkgs.writeShellScriptBin "casa-server" "exit 0";
           curatorPackage = pkgs.writeShellScriptBin "casa-curator" "exit 0";
+        };
+
+        services.hackage-metadata-refresh = {
+          enable = true;
+          package = pkgs.writeShellScriptBin "all-cabal-tool" "exit 0";
         };
       }
     ];
@@ -44,5 +49,10 @@ pkgs.nixosTest {
     machine.succeed("systemctl cat casa-update")
     machine.succeed("systemctl is-enabled casa-update")
     machine.succeed("systemctl show casa-update --property=User | grep -q casa-update")
+
+    # Verify hackage-metadata-refresh service
+    machine.succeed("systemctl cat hackage-metadata-refresh")
+    machine.succeed("systemctl is-enabled hackage-metadata-refresh")
+    machine.succeed("systemctl show hackage-metadata-refresh --property=User | grep -q hackage-metadata-refresh")
   '';
 }
