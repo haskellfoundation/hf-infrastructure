@@ -97,11 +97,7 @@
     ##
     ## Comprised of stackage-server-update and stackage-server itself.
 
-    nixosModules.stackage-server = import ./stackage-builder/nixos-modules/stackage-server.nix {
-      stackage-update-uid = 1005;
-      stackage-uid = 1006;
-      stackage-server-app = inputs.stackage-server.packages.x86_64-linux.default;
-    };
+    nixosModules.stackage-server = ./stackage-builder/nixos-modules/stackage-server.nix;
 
     # Expose this mainly so I can roll it up in cachix-push.sh. I should
     # probably do this from that repo itself, though...

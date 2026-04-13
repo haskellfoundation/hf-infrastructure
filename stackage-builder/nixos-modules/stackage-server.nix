@@ -21,8 +21,9 @@
 #   of sops-nix.
 #
 #
-{ stackage-update-uid, stackage-uid, stackage-server-app }: { pkgs, config, lib, ... }:
+{ lib, pkgs, config, ... }:
 let
+  cfg = config.services.stackage-server;
   srvName = "stackage-server";
   updateName = "stackage-update";
   restarterName = "stackage-restarter";
@@ -54,7 +55,7 @@ let
         PGSTRING = "postgresql://stackage@/stackage";
       } // extraEnvironment;
       preStart = ''
-        ln -srf ${stackage-server-app}/run/* .
+        ln -srf ${cfg.package}/run/* .
       '';
       script = if script == null then ''
         # FIXME: Does stackage-server even use these creds?
@@ -65,184 +66,216 @@ let
         # While checking just now, I see that the server has 1G resident. The
         # server has 178G available.
         # We may consider setting -A at some point.
-        ${stackage-server-app}/bin/stackage-server +RTS -N30 -H2G -M160G -RTS
+        ${cfg.package}/bin/stackage-server +RTS -N30 -H2G -M160G -RTS
       '' else script;
     };
 in {
-  services.postgresql = {
-    enable = true;
-    ensureDatabases = [ "stackage" ];
-    # The following three settings allow both services, running as their
-    # own system users, to connect to the db as dbuser "stackage".
-    ensureUsers = [
-      {
-        name = "stackage";
-        ensureDBOwnership = true;
-      }
-    ];
-    identMap = ''
-      stackage_users ${srvName} stackage
-      stackage_users ${updateName} stackage
-    '';
-    authentication = ''
-      local stackage stackage peer map=stackage_users
-    '';
-  };
-  sops.secrets = {
-    "${srvName}/aws_access_fpco" = {};
-    "${srvName}/aws_secret_fpco" = {};
-    "${srvName}/aws_access_r2" = {};
-    "${srvName}/aws_secret_r2" = {};
-    "${srvName}/r2_endpoint" = {};
-    "stackage.org/cloudflare-origin-cert" =
-      { owner = config.services.nginx.user; };
-    "stackage.org/cloudflare-origin-cert-private-key" =
-      { owner = config.services.nginx.user; };
-  };
+  options.services.stackage-server = {
+    enable = lib.mkEnableOption "Stackage server";
 
-  services.nginx = {
-    enable = true;
-    recommendedTlsSettings = true;
-    recommendedOptimisation = true;
-    recommendedGzipSettings = true;
-    recommendedProxySettings = true;
-  };
+    uid = lib.mkOption {
+      type = lib.types.int;
+      default = 1006;
+      description = "UID for the stackage-server user";
+    };
 
-  # STACKAGE SERVER
+    updaterUid = lib.mkOption {
+      type = lib.types.int;
+      default = 1005;
+      description = "UID for the stackage-update user";
+    };
 
-  users.groups.${srvName} = {
-    gid = stackage-uid;
-  };
-  users.users.${srvName} = {
-    uid = stackage-uid;
-    isNormalUser = true;
-    group = srvName;
-    home = "/home/${srvName}";
-    createHome = true;
-  };
-  systemd.services."${srvName}" = mkService {
-    keyName = "creds_aws_access_r2";
-    secretName = "creds_aws_secret_r2";
-    extraEnvironment = {
-      DOWNLOAD_BUCKET_URL = "https://stackage-haddock.haskell.org";
+    package = lib.mkOption {
+      type = lib.types.package;
+      description = "The stackage-server package";
+    };
+
+    tls = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable TLS with Cloudflare origin certificates";
+      };
     };
   };
 
-  services.nginx.virtualHosts =
-    let
-      stackageProxy = { port }: {
-        forceSSL = true;
-        locations."/" = {
-          proxyPass = "http://localhost:${toString port}";
-          recommendedProxySettings = true;
+  config = lib.mkIf cfg.enable {
+    services.postgresql = {
+      enable = true;
+      ensureDatabases = [ "stackage" ];
+      # The following three settings allow both services, running as their
+      # own system users, to connect to the db as dbuser "stackage".
+      ensureUsers = [
+        {
+          name = "stackage";
+          ensureDBOwnership = true;
+        }
+      ];
+      identMap = ''
+        stackage_users ${srvName} stackage
+        stackage_users ${updateName} stackage
+      '';
+      authentication = ''
+        local stackage stackage peer map=stackage_users
+      '';
+    };
+    sops.secrets = {
+      "${srvName}/aws_access_fpco" = {};
+      "${srvName}/aws_secret_fpco" = {};
+      "${srvName}/aws_access_r2" = {};
+      "${srvName}/aws_secret_r2" = {};
+      "${srvName}/r2_endpoint" = {};
+    } // lib.optionalAttrs cfg.tls.enable {
+      "stackage.org/cloudflare-origin-cert" =
+        { owner = config.services.nginx.user; };
+      "stackage.org/cloudflare-origin-cert-private-key" =
+        { owner = config.services.nginx.user; };
+    };
+
+    services.nginx = {
+      enable = true;
+      recommendedTlsSettings = true;
+      recommendedOptimisation = true;
+      recommendedGzipSettings = true;
+      recommendedProxySettings = true;
+    };
+
+    # STACKAGE SERVER
+
+    users.groups.${srvName} = {
+      gid = cfg.uid;
+    };
+    users.users.${srvName} = {
+      uid = cfg.uid;
+      isNormalUser = true;
+      group = srvName;
+      home = "/home/${srvName}";
+      createHome = true;
+    };
+    systemd.services."${srvName}" = mkService {
+      keyName = "creds_aws_access_r2";
+      secretName = "creds_aws_secret_r2";
+      extraEnvironment = {
+        DOWNLOAD_BUCKET_URL = "https://stackage-haddock.haskell.org";
+      };
+    };
+
+    services.nginx.virtualHosts =
+      let
+        stackageProxy = { port }: {
+          forceSSL = cfg.tls.enable;
+          locations."/" = {
+            proxyPass = "http://localhost:${toString port}";
+            recommendedProxySettings = true;
+          };
+        };
+      in {
+        "www.stackage.org" = (stackageProxy { port = stackagePort; }) // lib.optionalAttrs cfg.tls.enable {
+          sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
+          sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
         };
       };
-    in {
-      "www.stackage.org" = (stackageProxy { port = stackagePort; }) // {
-        sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
-        sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
+    networking.firewall.allowedTCPPorts = [ 22 80 443 ];
+
+    # HEALTH CHECK AND AUTO-RESTART MECHANISM FOR STACKAGE SERVER
+
+    systemd.services."${srvName}-healthcheck" = {
+      description = "Health check for ${srvName}";
+      serviceConfig = {
+        Type = "oneshot";
+        User = "nobody";
+        Group = "nogroup";
+      };
+      script = ''
+        # 10 second timeout for potentially slow first responses.
+        if ${pkgs.curl}/bin/curl --location --fail-with-body --silent --show-error --max-time 10 "http://localhost:${toString stackagePort}/lts" > /dev/null; then
+          exit 0
+        else
+          STATUS=$?
+          echo "${srvName} (http://localhost:${toString stackagePort}/) health check failed with curl exit code $STATUS!"
+          exit $STATUS
+        fi
+      '';
+      # If this health check service fails, trigger the restarter service.
+      onFailure = [ "${restarterName}.service" ];
+    };
+
+    systemd.services."${restarterName}" = {
+      description = "Restarter for ${srvName} after health check failure";
+      serviceConfig = {
+        Type = "oneshot";
+        # This service runs as root by default (since no User= is specified),
+        # which has the necessary permissions to restart other services.
+      };
+      script = ''
+        echo "Attempting to restart ${srvName}.service due to a failed health check."
+        ${pkgs.systemd}/bin/systemctl restart ${srvName}.service
+      '';
+    };
+
+    systemd.timers."${srvName}-healthcheck" = {
+      description = "Timer to periodically run health check for ${srvName}";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        Unit = "${srvName}-healthcheck.service";
+        OnBootSec = "1min";
+        OnUnitActiveSec = "5min"; # Check every 5 minutes
       };
     };
-  networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
-  # HEALTH CHECK AND AUTO-RESTART MECHANISM FOR STACKAGE SERVER
+    # STACKAGE UPDATER
 
-  systemd.services."${srvName}-healthcheck" = {
-    description = "Health check for ${srvName}";
-    serviceConfig = {
-      Type = "oneshot";
-      User = "nobody";
-      Group = "nogroup";
+    users.groups.${updateName} = {
+      gid = cfg.updaterUid;
     };
-    script = ''
-      # 10 second timeout for potentially slow first responses.
-      if ${pkgs.curl}/bin/curl --location --fail-with-body --silent --show-error --max-time 10 "http://localhost:${toString stackagePort}/lts" > /dev/null; then
-        exit 0
-      else
-        STATUS=$?
-        echo "${srvName} (http://localhost:${toString stackagePort}/) health check failed with curl exit code $STATUS!"
-        exit $STATUS
-      fi
-    '';
-    # If this health check service fails, trigger the restarter service.
-    onFailure = [ "${restarterName}.service" ];
-  };
-
-  systemd.services."${restarterName}" = {
-    description = "Restarter for ${srvName} after health check failure";
-    serviceConfig = {
-      Type = "oneshot";
-      # This service runs as root by default (since no User= is specified),
-      # which has the necessary permissions to restart other services.
+    users.users.${updateName} = {
+      uid = cfg.updaterUid;
+      isNormalUser = true;
+      group = updateName;
+      home = "/home/${updateName}";
+      createHome = true;
     };
-    script = ''
-      echo "Attempting to restart ${srvName}.service due to a failed health check."
-      ${pkgs.systemd}/bin/systemctl restart ${srvName}.service
-    '';
-  };
+    systemd.services.${updateName} = {
+      description = "Stackage server updater";
+      serviceConfig = {
+        User = updateName;
+        WorkingDirectory = "~";
+        LoadCredential = "creds:/run/secrets/${srvName}";
+        Type = "oneshot";
+      };
+      path = [ pkgs.git ];
+      environment = {
+        # This access is enabled in the services.postgres section
+        PGSTRING = "postgresql://stackage@/stackage";
+      };
+      preStart = ''
+        ln -srf ${cfg.package}/run/config $HOME
+      '';
+      script = ''
+        # FIXME: This stack update is a cargo cult from the fpco k8s
+        # deployment. I don't know what it's for.
+        ${pkgs.stack}/bin/stack update
 
-  systemd.timers."${srvName}-healthcheck" = {
-    description = "Timer to periodically run health check for ${srvName}";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      Unit = "${srvName}-healthcheck.service";
-      OnBootSec = "1min";
-      OnUnitActiveSec = "5min"; # Check every 5 minutes
+        export AWS_ACCESS_KEY_ID="$(< "$CREDENTIALS_DIRECTORY/creds_aws_access_r2")"
+        export AWS_SECRET_ACCESS_KEY="$(< "$CREDENTIALS_DIRECTORY/creds_aws_secret_r2")"
+        export AWS_S3_ENDPOINT="$(< "$CREDENTIALS_DIRECTORY/creds_r2_endpoint")"
+
+        ${cfg.package}/bin/stackage-server-cron \
+          --cache-cabal-files --log-level info \
+          --download-bucket stackage-haddock \
+          --upload-bucket stackage-haddock \
+          --download-bucket-url https://stackage-haddock.haskell.org
+      '';
     };
-  };
-
-  # STACKAGE UPDATER
-
-  users.groups.${updateName} = {
-    gid = stackage-update-uid;
-  };
-  users.users.${updateName} = {
-    uid = stackage-update-uid;
-    isNormalUser = true;
-    group = updateName;
-    home = "/home/${updateName}";
-    createHome = true;
-  };
-  systemd.services.${updateName} = {
-    description = "Stackage server updater";
-    serviceConfig = {
-      User = updateName;
-      WorkingDirectory = "~";
-      LoadCredential = "creds:/run/secrets/${srvName}";
-      Type = "oneshot";
-    };
-    path = [ pkgs.git ];
-    environment = {
-      # This access is enabled in the services.postgres section
-      PGSTRING = "postgresql://stackage@/stackage";
-    };
-    preStart = ''
-      ln -srf ${stackage-server-app}/run/config $HOME
-    '';
-    script = ''
-      # FIXME: This stack update is a cargo cult from the fpco k8s
-      # deployment. I don't know what it's for.
-      ${pkgs.stack}/bin/stack update
-
-      export AWS_ACCESS_KEY_ID="$(< "$CREDENTIALS_DIRECTORY/creds_aws_access_r2")"
-      export AWS_SECRET_ACCESS_KEY="$(< "$CREDENTIALS_DIRECTORY/creds_aws_secret_r2")"
-      export AWS_S3_ENDPOINT="$(< "$CREDENTIALS_DIRECTORY/creds_r2_endpoint")"
-
-      ${stackage-server-app}/bin/stackage-server-cron \
-        --cache-cabal-files --log-level info \
-        --download-bucket stackage-haddock \
-        --upload-bucket stackage-haddock \
-        --download-bucket-url https://stackage-haddock.haskell.org
-    '';
-  };
-  systemd.timers.${updateName} = {
-    description = "${updateName} trigger";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      Unit = "${updateName}.service";
-      OnBootSec = 30;
-      # Only fire if the previous run has finished.
-      OnUnitInactiveSec = "5 min";
+    systemd.timers.${updateName} = {
+      description = "${updateName} trigger";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        Unit = "${updateName}.service";
+        OnBootSec = 30;
+        # Only fire if the previous run has finished.
+        OnUnitInactiveSec = "5 min";
+      };
     };
   };
 }
