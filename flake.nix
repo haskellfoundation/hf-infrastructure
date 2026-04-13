@@ -22,7 +22,6 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    stackage-server.url = "github:commercialhaskell/stackage-server";
     hackage-mirror-tool = {
       url = "github:commercialhaskell/hackage-mirror-tool";
       flake = false;
@@ -33,6 +32,8 @@
     nixosModules.monitoring = ./modules/monitoring.nix;
     nixosModules.stackage-curator = ./stackage-builder/nixos-modules/stackage-curator.nix;
     nixosModules.hackage-metadata-refresh = ./stackage-builder/nixos-modules/hackage-metadata-refresh.nix;
+    nixosModules.stackage-server = ./stackage-builder/nixos-modules/stackage-server.nix;
+    nixosModules.casa-server = ./stackage-builder/nixos-modules/casa-server.nix;
 
 
     nixosModules.hf-cert-1 = {
@@ -92,18 +93,6 @@
     };
 
     ##
-    ## STACKAGE SERVER
-    ##
-    ##
-    ## Comprised of stackage-server-update and stackage-server itself.
-
-    nixosModules.stackage-server = ./stackage-builder/nixos-modules/stackage-server.nix;
-
-    # Expose this mainly so I can roll it up in cachix-push.sh. I should
-    # probably do this from that repo itself, though...
-    packages.x86_64-linux.stackage-server = inputs.stackage-server.packages.x86_64-linux.default;
-
-    ##
     ## CASA SERVER
     ##
 
@@ -138,8 +127,6 @@
           system = "x86_64-linux"; overlays = [ self.overlays.casa ];
         };
       in myPkgs.myHaskellPackages.casa;
-
-    nixosModules.casa-server = ./stackage-builder/nixos-modules/casa-server.nix;
 
     devShells.x86_64-linux.default = inputs.nixpkgs.legacyPackages.x86_64-linux.mkShell {
       buildInputs = [ inputs.sops-nix.packages.x86_64-linux.default ];
