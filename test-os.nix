@@ -27,6 +27,17 @@ pkgs.testers.nixosTest {
           enable = true;
           package = pkgs.writeShellScriptBin "all-cabal-tool" "exit 0";
         };
+
+        services.stackage-server = {
+          enable = true;
+          tls.enable = false;
+          package = pkgs.runCommand "stackage-server-dummy" {} ''
+            mkdir -p $out/bin $out/run
+            echo '#!/bin/sh' > $out/bin/stackage-server && chmod +x $out/bin/stackage-server
+            echo '#!/bin/sh' > $out/bin/stackage-server-cron && chmod +x $out/bin/stackage-server-cron
+            touch $out/run/config
+          '';
+        };
       }
     ];
   };
@@ -54,5 +65,16 @@ pkgs.testers.nixosTest {
     machine.succeed("systemctl cat hackage-metadata-refresh")
     machine.succeed("systemctl is-enabled hackage-metadata-refresh")
     machine.succeed("systemctl show hackage-metadata-refresh --property=User | grep -q hackage-metadata-refresh")
+
+    # Verify stackage-server service
+    machine.succeed("systemctl cat stackage-server")
+    machine.succeed("systemctl is-enabled stackage-server")
+    machine.succeed("systemctl show stackage-server --property=User | grep -q stackage-server")
+
+    # Verify stackage-update service and timer
+    machine.succeed("systemctl cat stackage-update")
+
+    # Verify health check timer
+    machine.succeed("systemctl cat stackage-server-healthcheck.timer")
   '';
 }
