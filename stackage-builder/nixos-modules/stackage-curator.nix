@@ -1,5 +1,7 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 {
+  sops.secrets."curators-docker-config" =
+    { owner = "curators"; };
   virtualisation.docker.enable = true;
   environment.systemPackages = with pkgs; [
     tmux

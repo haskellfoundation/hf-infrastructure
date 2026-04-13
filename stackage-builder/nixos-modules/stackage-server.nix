@@ -98,8 +98,6 @@ in {
       { owner = config.services.nginx.user; };
     "stackage.org/cloudflare-origin-cert-private-key" =
       { owner = config.services.nginx.user; };
-    "curators-docker-config" =
-      { owner = "curators"; };
   };
 
   services.nginx = {
