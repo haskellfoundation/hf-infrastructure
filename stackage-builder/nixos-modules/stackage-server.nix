@@ -138,6 +138,15 @@ in {
       recommendedOptimisation = true;
       recommendedGzipSettings = true;
       recommendedProxySettings = true;
+      # Bump from the default 512 due to observed load
+      eventsConfig = "worker_connections 4096;";
+      upstreams."stackage-backend" = {
+        # stackage-server only speaks ipv4 right now.
+        servers."127.0.0.1:${toString stackagePort}" = {};
+        # Reuse upstream connections to reduce the number of TIME_WAIT
+        # connections.
+        extraConfig = "keepalive 64;";
+      };
     };
 
     # STACKAGE SERVER
@@ -162,15 +171,20 @@ in {
 
     services.nginx.virtualHosts =
       let
-        stackageProxy = { port }: {
+        stackageProxy = {
           forceSSL = cfg.tls.enable;
           locations."/" = {
-            proxyPass = "http://localhost:${toString port}";
+            proxyPass = "http://stackage-backend";
             recommendedProxySettings = true;
+            # Supports keepalive
+            extraConfig = ''
+              proxy_http_version 1.1;
+              proxy_set_header Connection "";
+            '';
           };
         };
       in {
-        "www.stackage.org" = (stackageProxy { port = stackagePort; }) // lib.optionalAttrs cfg.tls.enable {
+        "www.stackage.org" = stackageProxy // lib.optionalAttrs cfg.tls.enable {
           sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
           sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
         };
