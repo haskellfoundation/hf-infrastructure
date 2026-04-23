@@ -127,26 +127,19 @@ in {
       "${srvName}/r2_endpoint" = {};
     } // lib.optionalAttrs cfg.tls.enable {
       "stackage.org/cloudflare-origin-cert" =
-        { owner = config.services.nginx.user; };
+        { owner = config.services.caddy.user; };
       "stackage.org/cloudflare-origin-cert-private-key" =
-        { owner = config.services.nginx.user; };
+        { owner = config.services.caddy.user; };
     };
 
-    services.nginx = {
-      enable = true;
-      recommendedTlsSettings = true;
-      recommendedOptimisation = true;
-      recommendedGzipSettings = true;
-      recommendedProxySettings = true;
-      # Bump from the default 512 due to observed load
-      eventsConfig = "worker_connections 4096;";
-      upstreams."stackage-backend" = {
-        # stackage-server only speaks ipv4 right now.
-        servers."127.0.0.1:${toString stackagePort}" = {};
-        # Reuse upstream connections to reduce the number of TIME_WAIT
-        # connections.
-        extraConfig = "keepalive 64;";
-      };
+    services.caddy.enable = true;
+    services.caddy.virtualHosts."www.stackage.org" = {
+      extraConfig = ''
+        ${lib.optionalString cfg.tls.enable
+          "tls /run/secrets/stackage.org/cloudflare-origin-cert /run/secrets/stackage.org/cloudflare-origin-cert-private-key"
+        }
+        reverse_proxy 127.0.0.1:${toString stackagePort}
+      '';
     };
 
     # STACKAGE SERVER
@@ -168,27 +161,6 @@ in {
         DOWNLOAD_BUCKET_URL = "https://stackage-haddock.haskell.org";
       };
     };
-
-    services.nginx.virtualHosts =
-      let
-        stackageProxy = {
-          forceSSL = cfg.tls.enable;
-          locations."/" = {
-            proxyPass = "http://stackage-backend";
-            recommendedProxySettings = true;
-            # Supports keepalive
-            extraConfig = ''
-              proxy_http_version 1.1;
-              proxy_set_header Connection "";
-            '';
-          };
-        };
-      in {
-        "www.stackage.org" = stackageProxy // lib.optionalAttrs cfg.tls.enable {
-          sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
-          sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
-        };
-      };
     networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
     # HEALTH CHECK AND AUTO-RESTART MECHANISM FOR STACKAGE SERVER

@@ -55,9 +55,9 @@ in {
     # FIXME: Start using origin domain + certbot rather than an origin cert.
     sops.secrets = lib.mkIf cfg.tls.enable {
       "stackage.org/cloudflare-origin-cert" =
-        { owner = config.services.nginx.user; };
+        { owner = config.services.caddy.user; };
       "stackage.org/cloudflare-origin-cert-private-key" =
-        { owner = config.services.nginx.user; };
+        { owner = config.services.caddy.user; };
     };
     users.groups.${name} = {
       gid = cfg.uid;
@@ -94,20 +94,14 @@ in {
         ${cfg.package}/bin/casa-server +RTS -N10 -H2G
       '';
     };
-    services.nginx.enable = true;
-    services.nginx.virtualHosts = {
-      ${vhostStackageOrg} = {
-        forceSSL = cfg.tls.enable;
-        locations."/" = {
-          # casa-server only speaks ipv4 right now.
-          proxyPass = "http://127.0.0.1:${toString publicPort}";
-          recommendedProxySettings = true;
-        };
-      } // lib.optionalAttrs cfg.tls.enable {
-        # FIXME: Start using origin domain + certbot rather than an origin cert.
-        sslCertificate = "/run/secrets/stackage.org/cloudflare-origin-cert";
-        sslCertificateKey = "/run/secrets/stackage.org/cloudflare-origin-cert-private-key";
-      };
+    services.caddy.enable = true;
+    services.caddy.virtualHosts.${vhostStackageOrg} = {
+      extraConfig = ''
+        ${lib.optionalString cfg.tls.enable
+          "tls /run/secrets/stackage.org/cloudflare-origin-cert /run/secrets/stackage.org/cloudflare-origin-cert-private-key"
+        }
+        reverse_proxy 127.0.0.1:${toString publicPort}
+      '';
     };
     networking.firewall.allowedTCPPorts = [ 22 80 443 ];
 
