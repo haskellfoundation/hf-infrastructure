@@ -19,7 +19,7 @@ pkgs.testers.nixosTest {
 
         services.casa = {
           enable = true;
-          tls.enable = false;
+          tls.enable = true;
           package = pkgs.writeShellScriptBin "casa-server" "exit 0";
           curatorPackage = pkgs.writeShellScriptBin "casa-curator" "exit 0";
         };
@@ -31,7 +31,7 @@ pkgs.testers.nixosTest {
 
         services.stackage-server = {
           enable = true;
-          tls.enable = false;
+          tls.enable = true;
           package =
             let
               stubServer = pkgs.writeScriptBin "stackage-server" ''
@@ -99,7 +99,13 @@ pkgs.testers.nixosTest {
         print(machine.execute("journalctl -u stackage-server --no-pager")[1])
         raise
     machine.wait_for_open_port(3000)
-    machine.wait_for_open_port(80)
-    machine.succeed("curl -f -H 'Host: www.stackage.org' http://localhost/")
+    machine.wait_for_open_port(443)
+
+    # Verify HTTPS with certificate verification
+    machine.succeed(
+        "curl --resolve www.stackage.org:443:127.0.0.1"
+        " --cacert ${./test-ca-cert.pem}"
+        " -f https://www.stackage.org/"
+    )
   '';
 }
