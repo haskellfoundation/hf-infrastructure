@@ -90,8 +90,8 @@ pkgs.testers.nixosTest {
     # Verify health check timer
     machine.succeed("systemctl cat stackage-server-healthcheck.timer")
 
-    # Verify nginx proxies requests to the stackage-server backend
-    machine.wait_for_unit("nginx")
+    # Verify caddy proxies requests to the stackage-server backend
+    machine.wait_for_unit("caddy")
     try:
         machine.wait_for_unit("stackage-server")
     except Exception:
