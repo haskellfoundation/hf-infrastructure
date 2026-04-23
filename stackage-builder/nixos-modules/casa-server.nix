@@ -99,7 +99,8 @@ in {
       ${vhostStackageOrg} = {
         forceSSL = cfg.tls.enable;
         locations."/" = {
-          proxyPass = "http://localhost:${toString publicPort}";
+          # casa-server only speaks ipv4 right now.
+          proxyPass = "http://127.0.0.1:${toString publicPort}";
           recommendedProxySettings = true;
         };
       } // lib.optionalAttrs cfg.tls.enable {

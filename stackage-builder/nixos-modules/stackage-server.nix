@@ -141,7 +141,8 @@ in {
       # Bump from the default 512 due to observed load
       eventsConfig = "worker_connections 4096;";
       upstreams."stackage-backend" = {
-        servers."localhost:${toString stackagePort}" = {};
+        # stackage-server only speaks ipv4 right now.
+        servers."127.0.0.1:${toString stackagePort}" = {};
         # Reuse upstream connections to reduce the number of TIME_WAIT
         # connections.
         extraConfig = "keepalive 64;";
