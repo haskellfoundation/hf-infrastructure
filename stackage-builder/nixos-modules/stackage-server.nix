@@ -28,6 +28,8 @@ let
   updateName = "stackage-update";
   restarterName = "stackage-restarter";
   stackagePort = 3000;
+  # Bump from the default 512 due to observed load
+  nginxWorkerConnections = 4096;
   mkService =
     { description ? "Stackage server"
     , workDir ? "~"
@@ -138,8 +140,11 @@ in {
       recommendedOptimisation = true;
       recommendedGzipSettings = true;
       recommendedProxySettings = true;
-      # Bump from the default 512 due to observed load
-      eventsConfig = "worker_connections 4096;";
+      eventsConfig = "worker_connections ${toString nginxWorkerConnections};";
+      # Mandatory minimum number of files (1 per up/down connection)
+      appendConfig = ''
+        worker_rlimit_nofile ${toString (nginxWorkerConnections * 2)};
+      '';
       upstreams."stackage-backend" = {
         # stackage-server only speaks ipv4 right now.
         servers."127.0.0.1:${toString stackagePort}" = {};
