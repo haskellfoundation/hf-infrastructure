@@ -12,8 +12,9 @@ pkgs.testers.nixosTest {
       self.nixosModules.hackage-mirror
       self.nixosModules.stackage-server
       self.nixosModules.casa-server
-      { sops.defaultSopsFile = ./empty-sops-file;
-        sops.age.keyFile = "/dev/null";
+      { sops.defaultSopsFile = ./test-sops-file.json;
+        sops.age.keyFile = "/etc/test-age-key";
+        environment.etc."test-age-key".source = ./test-age-key.txt;
         hardware.systemMemory = 4 * 1024 * 1024 * 1024; # 4 GB
 
         services.casa = {
@@ -31,12 +32,24 @@ pkgs.testers.nixosTest {
         services.stackage-server = {
           enable = true;
           tls.enable = false;
-          package = pkgs.runCommand "stackage-server-dummy" {} ''
-            mkdir -p $out/bin $out/run
-            echo '#!/bin/sh' > $out/bin/stackage-server && chmod +x $out/bin/stackage-server
-            echo '#!/bin/sh' > $out/bin/stackage-server-cron && chmod +x $out/bin/stackage-server-cron
-            touch $out/run/config
-          '';
+          package =
+            let
+              stubServer = pkgs.writeScriptBin "stackage-server" ''
+                #!${pkgs.python3}/bin/python3
+                from http.server import HTTPServer, BaseHTTPRequestHandler
+                class H(BaseHTTPRequestHandler):
+                    def do_GET(self):
+                        self.send_response(200)
+                        self.end_headers()
+                        self.wfile.write(b"OK")
+                HTTPServer(("", 3000), H).serve_forever()
+              '';
+            in pkgs.runCommand "stackage-server-dummy" {} ''
+              mkdir -p $out/bin $out/run
+              ln -s ${stubServer}/bin/stackage-server $out/bin/stackage-server
+              echo '#!/bin/sh' > $out/bin/stackage-server-cron && chmod +x $out/bin/stackage-server-cron
+              touch $out/run/config
+            '';
         };
       }
     ];
@@ -76,5 +89,17 @@ pkgs.testers.nixosTest {
 
     # Verify health check timer
     machine.succeed("systemctl cat stackage-server-healthcheck.timer")
+
+    # Verify nginx proxies requests to the stackage-server backend
+    machine.wait_for_unit("nginx")
+    try:
+        machine.wait_for_unit("stackage-server")
+    except Exception:
+        print(machine.execute("systemctl status stackage-server")[1])
+        print(machine.execute("journalctl -u stackage-server --no-pager")[1])
+        raise
+    machine.wait_for_open_port(3000)
+    machine.wait_for_open_port(80)
+    machine.succeed("curl -f -H 'Host: www.stackage.org' http://localhost/")
   '';
 }
