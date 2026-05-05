@@ -3,10 +3,14 @@
 pkgs.testers.nixosTest {
   name = "stackage-test";
   nodes.machine = { ... }: {
+    virtualisation.emptyDiskImages = [ 512 ];
+    boot.supportedFilesystems = [ "zfs" ];
+    networking.hostId = "deadbeef";
     imports = [
       inputs.sops-nix.nixosModules.sops
       self.nixosModules.system-common
       self.nixosModules.monitoring
+      self.nixosModules.zettarepl-target
       self.nixosModules.stackage-curator
       self.nixosModules.hackage-metadata-refresh
       self.nixosModules.hackage-mirror
@@ -16,6 +20,11 @@ pkgs.testers.nixosTest {
         sops.age.keyFile = "/etc/test-age-key";
         environment.etc."test-age-key".source = ./test-age-key.txt;
         hardware.systemMemory = 4 * 1024 * 1024 * 1024; # 4 GB
+
+        services.zettarepl-target = {
+          enable = true;
+          datasets = [ "testpool/data" ];
+        };
 
         services.casa = {
           enable = true;
@@ -57,6 +66,16 @@ pkgs.testers.nixosTest {
 
   testScript = ''
     machine.wait_for_unit("multi-user.target")
+
+    # Verify zettarepl user exists with SSH key
+    machine.succeed("id zettarepl")
+    machine.succeed("grep -q 'ssh-ed25519' /etc/ssh/authorized_keys.d/zettarepl")
+
+    # Create a ZFS pool and dataset, then re-run the activation script
+    machine.succeed("zpool create testpool /dev/vdb")
+    machine.succeed("zfs create testpool/data")
+    machine.succeed("/run/current-system/activate")
+    machine.succeed("zfs allow testpool/data | grep -q zettarepl")
 
     # Verify casa service unit is created and enabled
     machine.succeed("systemctl cat casa")
