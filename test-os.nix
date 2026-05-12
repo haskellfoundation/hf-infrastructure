@@ -16,6 +16,7 @@ pkgs.testers.nixosTest {
       self.nixosModules.hackage-mirror
       self.nixosModules.stackage-server
       self.nixosModules.casa-server
+      self.nixosModules.service-watchdog
       { sops.defaultSopsFile = ./test-sops-file.json;
         sops.age.keyFile = "/etc/test-age-key";
         environment.etc."test-age-key".source = ./test-age-key.txt;
@@ -36,6 +37,14 @@ pkgs.testers.nixosTest {
         services.hackage-metadata-refresh = {
           enable = true;
           package = pkgs.writeShellScriptBin "all-cabal-tool" "exit 0";
+        };
+
+        services.service-watchdog = {
+          stackage-server = {
+            port = 3000;
+            endpoint = "/lts";
+            timeout = 1;
+          };
         };
 
         services.stackage-server = {
@@ -106,8 +115,10 @@ pkgs.testers.nixosTest {
     # Verify stackage-update service and timer
     machine.succeed("systemctl cat stackage-update")
 
-    # Verify health check timer
+    # Verify health check timers
     machine.succeed("systemctl cat stackage-server-healthcheck.timer")
+    machine.succeed("systemctl cat casa-healthcheck.timer")
+    machine.succeed("systemctl cat restarter@.service")
 
     # Verify caddy proxies requests to the stackage-server backend
     machine.wait_for_unit("caddy")
@@ -126,5 +137,17 @@ pkgs.testers.nixosTest {
         " --cacert ${./test-ca-cert.pem}"
         " -f https://www.stackage.org/"
     )
+
+    # Verify watchdog health check passes when service is up
+    machine.succeed("systemctl start stackage-server-healthcheck")
+
+    # Verify watchdog restarts a stopped service
+    machine.succeed("systemctl stop stackage-server")
+    machine.fail("curl --silent --max-time 1 http://localhost:3000/lts")
+    # Trigger the health check — it should fail and fire restarter@stackage-server
+    machine.fail("systemctl start stackage-server-healthcheck")
+    machine.wait_for_unit("stackage-server")
+    machine.wait_for_open_port(3000)
+    machine.succeed("curl --silent --max-time 5 http://localhost:3000/lts")
   '';
 }

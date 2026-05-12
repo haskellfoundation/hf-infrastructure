@@ -1,5 +1,4 @@
-# Defines stackage.service, stackage-update.service, and stackage-update.timer.
-# Also includes a health check and auto-restart mechanism for stackage.service.
+# Defines stackage-server.service, stackage-update.service, and stackage-update.timer.
 #
 # stackage-update.service runs stackage-server-cron to keep the Stackage website
 # up to date.
@@ -26,7 +25,6 @@ let
   cfg = config.services.stackage-server;
   srvName = "stackage-server";
   updateName = "stackage-update";
-  restarterName = "stackage-restarter";
   stackagePort = 3000;
   mkService =
     { description ? "Stackage server"
@@ -47,8 +45,6 @@ let
         RestartSec = 1;
         LoadCredential = "creds:/run/secrets/${srvName}";
         WorkingDirectory = workDir;
-        # If stackage-server supports it, Type=notify and WatchdogSec=30s would be ideal.
-        # Since it likely doesn't, we use an external timer-based check.
       };
       path = [ pkgs.git ];
       environment = {
@@ -162,52 +158,6 @@ in {
       };
     };
     networking.firewall.allowedTCPPorts = [ 22 80 443 ];
-
-    # HEALTH CHECK AND AUTO-RESTART MECHANISM FOR STACKAGE SERVER
-
-    systemd.services."${srvName}-healthcheck" = {
-      description = "Health check for ${srvName}";
-      serviceConfig = {
-        Type = "oneshot";
-        User = "nobody";
-        Group = "nogroup";
-      };
-      script = ''
-        # 10 second timeout for potentially slow first responses.
-        if ${pkgs.curl}/bin/curl --location --fail-with-body --silent --show-error --max-time 10 "http://localhost:${toString stackagePort}/lts" > /dev/null; then
-          exit 0
-        else
-          STATUS=$?
-          echo "${srvName} (http://localhost:${toString stackagePort}/) health check failed with curl exit code $STATUS!"
-          exit $STATUS
-        fi
-      '';
-      # If this health check service fails, trigger the restarter service.
-      onFailure = [ "${restarterName}.service" ];
-    };
-
-    systemd.services."${restarterName}" = {
-      description = "Restarter for ${srvName} after health check failure";
-      serviceConfig = {
-        Type = "oneshot";
-        # This service runs as root by default (since no User= is specified),
-        # which has the necessary permissions to restart other services.
-      };
-      script = ''
-        echo "Attempting to restart ${srvName}.service due to a failed health check."
-        ${pkgs.systemd}/bin/systemctl restart ${srvName}.service
-      '';
-    };
-
-    systemd.timers."${srvName}-healthcheck" = {
-      description = "Timer to periodically run health check for ${srvName}";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        Unit = "${srvName}-healthcheck.service";
-        OnBootSec = "1min";
-        OnUnitActiveSec = "5min"; # Check every 5 minutes
-      };
-    };
 
     # STACKAGE UPDATER
 
