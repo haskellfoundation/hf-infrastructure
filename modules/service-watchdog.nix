@@ -42,8 +42,7 @@ in {
           description = "Health check for ${name}";
           serviceConfig = {
             Type = "oneshot";
-            User = "nobody";
-            Group = "nogroup";
+            DynamicUser = true;
           };
           script = ''
             if ${pkgs.curl}/bin/curl --fail-with-body --silent --show-error --max-time ${toString wcfg.timeout} "${url}" > /dev/null; then
