@@ -9,7 +9,6 @@ pkgs.testers.nixosTest {
     imports = [
       inputs.sops-nix.nixosModules.sops
       self.nixosModules.system-common
-      self.nixosModules.monitoring
       self.nixosModules.monitoring-prometheus
       self.nixosModules.zettarepl-target
       self.nixosModules.stackage-curator

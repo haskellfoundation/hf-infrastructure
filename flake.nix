@@ -29,7 +29,6 @@
   };
   outputs = inputs@{ self, hackage-mirror-tool, ... }: {
     nixosModules.system-common = ./modules/system-common.nix;
-    nixosModules.monitoring = ./modules/monitoring.nix;
     nixosModules.zettarepl-target = ./modules/zettarepl-target.nix;
     nixosModules.stackage-curator = ./stackage-builder/nixos-modules/stackage-curator.nix;
     nixosModules.hackage-metadata-refresh = ./stackage-builder/nixos-modules/hackage-metadata-refresh.nix;
