@@ -35,6 +35,7 @@
     nixosModules.hackage-metadata-refresh = ./stackage-builder/nixos-modules/hackage-metadata-refresh.nix;
     nixosModules.stackage-server = ./stackage-builder/nixos-modules/stackage-server.nix;
     nixosModules.casa-server = ./stackage-builder/nixos-modules/casa-server.nix;
+    nixosModules.monitoring-prometheus = ./modules/monitoring-prometheus.nix;
     nixosModules.service-watchdog = ./modules/service-watchdog.nix;
 
 

@@ -10,6 +10,7 @@ pkgs.testers.nixosTest {
       inputs.sops-nix.nixosModules.sops
       self.nixosModules.system-common
       self.nixosModules.monitoring
+      self.nixosModules.monitoring-prometheus
       self.nixosModules.zettarepl-target
       self.nixosModules.stackage-curator
       self.nixosModules.hackage-metadata-refresh
@@ -136,6 +137,11 @@ pkgs.testers.nixosTest {
         " --cacert ${./test-ca-cert.pem}"
         " -f https://www.stackage.org/"
     )
+
+    # Verify Prometheus and node_exporter services are configured
+    machine.succeed("systemctl cat prometheus")
+    machine.succeed("systemctl cat prometheus-node-exporter")
+    machine.succeed("systemctl cat zfs-dataset-metrics.timer")
 
     # Verify watchdog health check passes when service is up
     machine.succeed("systemctl start stackage-server-healthcheck")
