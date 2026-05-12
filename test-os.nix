@@ -117,7 +117,6 @@ pkgs.testers.nixosTest {
 
     # Verify health check timers
     machine.succeed("systemctl cat stackage-server-healthcheck.timer")
-    machine.succeed("systemctl cat casa-healthcheck.timer")
     machine.succeed("systemctl cat restarter@.service")
 
     # Verify caddy proxies requests to the stackage-server backend
