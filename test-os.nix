@@ -10,6 +10,8 @@ pkgs.testers.nixosTest {
       inputs.sops-nix.nixosModules.sops
       self.nixosModules.system-common
       self.nixosModules.monitoring-prometheus
+      # Exercises the Nix code without paying for Grafana's slow DB migration.
+      ({ lib, ... }: { services.grafana.enable = lib.mkForce false; })
       self.nixosModules.zettarepl-target
       self.nixosModules.stackage-curator
       self.nixosModules.hackage-metadata-refresh
