@@ -7,6 +7,13 @@
       "type": "datasource",
       "pluginId": "prometheus",
       "pluginName": "Prometheus"
+    },
+    {
+      "name": "VAL_INSTANCE",
+      "label": "Server instance",
+      "description": "Prometheus instance label (e.g. localhost:9100)",
+      "type": "constant",
+      "value": ""
     }
   ],
   "__elements": {},
@@ -206,7 +213,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Cached_bytes - node_memory_Buffers_bytes - node_memory_SReclaimable_bytes - node_zfs_arc_size",
+          "expr": "node_memory_MemTotal_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_MemFree_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_Cached_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_Buffers_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_SReclaimable_bytes{instance=~\"${VAL_INSTANCE}\"} - node_zfs_arc_size{instance=~\"${VAL_INSTANCE}\"}",
           "legendFormat": "used",
           "refId": "used"
         },
@@ -215,7 +222,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_zfs_arc_size",
+          "expr": "node_zfs_arc_size{instance=~\"${VAL_INSTANCE}\"}",
           "legendFormat": "zfs cache",
           "refId": "zfs_cache"
         },
@@ -224,7 +231,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_memory_Cached_bytes + node_memory_Buffers_bytes + node_memory_SReclaimable_bytes",
+          "expr": "node_memory_Cached_bytes{instance=~\"${VAL_INSTANCE}\"} + node_memory_Buffers_bytes{instance=~\"${VAL_INSTANCE}\"} + node_memory_SReclaimable_bytes{instance=~\"${VAL_INSTANCE}\"}",
           "legendFormat": "kernel cache",
           "refId": "kernel_cache"
         },
@@ -233,7 +240,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_memory_MemFree_bytes",
+          "expr": "node_memory_MemFree_bytes{instance=~\"${VAL_INSTANCE}\"}",
           "legendFormat": "unused",
           "refId": "unused"
         }
@@ -328,7 +335,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{mode=\"system\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"system\"}[$__rate_interval]))",
           "legendFormat": "sys",
           "refId": "sys"
         },
@@ -337,7 +344,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{mode=\"user\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"user\"}[$__rate_interval]))",
           "legendFormat": "usr",
           "refId": "usr"
         },
@@ -346,7 +353,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{mode=\"iowait\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"iowait\"}[$__rate_interval]))",
           "legendFormat": "iowait",
           "refId": "iowait"
         },
@@ -355,7 +362,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{mode=\"nice\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"nice\"}[$__rate_interval]))",
           "legendFormat": "nice",
           "refId": "nice"
         },
@@ -364,7 +371,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"idle\"}[$__rate_interval]))",
           "legendFormat": "idle",
           "refId": "idle"
         }
@@ -472,7 +479,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_network_receive_bytes_total{device=\"enp94s0f0\"}[$__rate_interval])",
+          "expr": "rate(node_network_receive_bytes_total{instance=~\"${VAL_INSTANCE}\",device=\"enp94s0f0\"}[$__rate_interval])",
           "legendFormat": "bytes_recv/s",
           "refId": "recv"
         },
@@ -481,7 +488,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_network_transmit_bytes_total{device=\"enp94s0f0\"}[$__rate_interval])",
+          "expr": "rate(node_network_transmit_bytes_total{instance=~\"${VAL_INSTANCE}\",device=\"enp94s0f0\"}[$__rate_interval])",
           "legendFormat": "bytes_sent/s",
           "refId": "sent"
         }
@@ -576,7 +583,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_netstat_Tcp_ActiveOpens[$__rate_interval])",
+          "expr": "rate(node_netstat_Tcp_ActiveOpens{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval])",
           "legendFormat": "Active opens/s",
           "refId": "active"
         },
@@ -585,7 +592,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_netstat_Tcp_PassiveOpens[$__rate_interval])",
+          "expr": "rate(node_netstat_Tcp_PassiveOpens{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval])",
           "legendFormat": "Passive opens/s",
           "refId": "passive"
         }
@@ -693,7 +700,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_disk_io_time_seconds_total[$__rate_interval])",
+          "expr": "rate(node_disk_io_time_seconds_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval])",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -788,7 +795,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_disk_io_time_weighted_seconds_total[$__rate_interval]) / (rate(node_disk_reads_completed_total[$__rate_interval]) + rate(node_disk_writes_completed_total[$__rate_interval]))",
+          "expr": "rate(node_disk_io_time_weighted_seconds_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval]) / (rate(node_disk_reads_completed_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval]) + rate(node_disk_writes_completed_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval]))",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -898,7 +905,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(zfs_dataset_nwritten_bytes_total{dataset!~\".*reserved\"}[$__rate_interval])",
+          "expr": "rate(zfs_dataset_nwritten_bytes_total{instance=~\"${VAL_INSTANCE}\",dataset!~\".*reserved\"}[$__rate_interval])",
           "legendFormat": "written {{dataset}}",
           "refId": "A"
         }
@@ -1008,7 +1015,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(zfs_dataset_nread_bytes_total{dataset!~\".*reserved\"}[$__rate_interval])",
+          "expr": "rate(zfs_dataset_nread_bytes_total{instance=~\"${VAL_INSTANCE}\",dataset!~\".*reserved\"}[$__rate_interval])",
           "legendFormat": "nread {{dataset}}",
           "refId": "A"
         }
@@ -1297,7 +1304,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{dataset=\"zroot\"}",
+          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot\"}",
           "legendFormat": "zroot snapshots",
           "refId": "zroot_snap"
         },
@@ -1306,7 +1313,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{dataset=\"zroot\"}",
+          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot\"}",
           "legendFormat": "zroot refer",
           "refId": "zroot_refer"
         },
@@ -1315,7 +1322,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{dataset=\"zroot/home\"}",
+          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home\"}",
           "legendFormat": "zroot/home snapshots",
           "refId": "home_snap"
         },
@@ -1324,7 +1331,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{dataset=\"zroot/home\"}",
+          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home\"}",
           "legendFormat": "zroot/home refer",
           "refId": "home_refer"
         },
@@ -1333,7 +1340,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{dataset=\"zroot/home_curators\"}",
+          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home_curators\"}",
           "legendFormat": "zroot/home_curators snapshots",
           "refId": "curators_snap"
         },
@@ -1342,7 +1349,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{dataset=\"zroot/home_curators\"}",
+          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home_curators\"}",
           "legendFormat": "zroot/home_curators refer",
           "refId": "curators_refer"
         },
@@ -1351,7 +1358,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{dataset=\"zroot/postgres_data\"}",
+          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/postgres_data\"}",
           "legendFormat": "zroot/postgres_data snapshots",
           "refId": "pg_snap"
         },
@@ -1360,7 +1367,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{dataset=\"zroot/postgres_data\"}",
+          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/postgres_data\"}",
           "legendFormat": "zroot/postgres_data refer",
           "refId": "pg_refer"
         },
@@ -1369,7 +1376,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_avail_bytes{dataset=\"zroot\"}",
+          "expr": "zfs_dataset_avail_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot\"}",
           "legendFormat": "avail",
           "refId": "avail"
         }
@@ -1390,8 +1397,8 @@
   },
   "timepicker": {},
   "timezone": "utc",
-  "title": "System (Prometheus)",
-  "uid": "system-prometheus",
-  "version": 8,
+  "title": "System",
+  "uid": null,
+  "version": 11,
   "weekStart": ""
 }
