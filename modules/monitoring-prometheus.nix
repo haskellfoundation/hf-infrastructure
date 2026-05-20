@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 let
   nodeExporterPort = 9100;
+  zfsExporterPort = 9134;
   prometheusPort = 9090;
 in
 {
@@ -15,7 +16,10 @@ in
         job_name = "node";
         scrape_interval = "15s";
         static_configs = [
-          { targets = [ "localhost:${toString nodeExporterPort}" ]; }
+          { targets = [
+            "localhost:${toString nodeExporterPort}"
+            "localhost:${toString zfsExporterPort}"
+          ]; }
         ];
       }
     ];
@@ -23,6 +27,11 @@ in
 
   services.prometheus.exporters.node = {
     port = nodeExporterPort;
+  };
+
+  services.prometheus.exporters.zfs = {
+    enable = true;
+    port = zfsExporterPort;
   };
 
   services.grafana = {
