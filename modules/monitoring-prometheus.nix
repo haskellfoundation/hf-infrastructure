@@ -22,13 +22,6 @@ in
           ]; }
         ];
       }
-      {
-        job_name = "zfs";
-        scrape_interval = "15s";
-        static_configs = [
-          { targets = [ "localhost:${toString zfsExporterPort}" ]; }
-        ];
-      }
     ];
   };
 
