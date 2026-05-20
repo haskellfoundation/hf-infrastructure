@@ -7,13 +7,6 @@
       "type": "datasource",
       "pluginId": "prometheus",
       "pluginName": "Prometheus"
-    },
-    {
-      "name": "VAL_INSTANCE",
-      "label": "Server instance",
-      "description": "Prometheus instance label (e.g. localhost:9100)",
-      "type": "constant",
-      "value": ""
     }
   ],
   "__elements": {},
@@ -22,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "12.0.7"
+      "version": "12.3.6"
     },
     {
       "type": "datasource",
@@ -62,7 +55,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": null,
   "links": [],
   "panels": [
     {
@@ -99,6 +91,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -113,7 +106,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -206,14 +200,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_memory_MemTotal_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_MemFree_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_Cached_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_Buffers_bytes{instance=~\"${VAL_INSTANCE}\"} - node_memory_SReclaimable_bytes{instance=~\"${VAL_INSTANCE}\"} - node_zfs_arc_size{instance=~\"${VAL_INSTANCE}\"}",
+          "expr": "node_memory_MemTotal_bytes{instance=~\"localhost:9100\"} - node_memory_MemFree_bytes{instance=~\"localhost:9100\"} - node_memory_Cached_bytes{instance=~\"localhost:9100\"} - node_memory_Buffers_bytes{instance=~\"localhost:9100\"} - node_memory_SReclaimable_bytes{instance=~\"localhost:9100\"} - node_zfs_arc_size{instance=~\"localhost:9100\"}",
           "legendFormat": "used",
           "refId": "used"
         },
@@ -222,7 +216,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_zfs_arc_size{instance=~\"${VAL_INSTANCE}\"}",
+          "expr": "node_zfs_arc_size{instance=~\"localhost:9100\"}",
           "legendFormat": "zfs cache",
           "refId": "zfs_cache"
         },
@@ -231,7 +225,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_memory_Cached_bytes{instance=~\"${VAL_INSTANCE}\"} + node_memory_Buffers_bytes{instance=~\"${VAL_INSTANCE}\"} + node_memory_SReclaimable_bytes{instance=~\"${VAL_INSTANCE}\"}",
+          "expr": "node_memory_Cached_bytes{instance=~\"localhost:9100\"} + node_memory_Buffers_bytes{instance=~\"localhost:9100\"} + node_memory_SReclaimable_bytes{instance=~\"localhost:9100\"}",
           "legendFormat": "kernel cache",
           "refId": "kernel_cache"
         },
@@ -240,7 +234,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "node_memory_MemFree_bytes{instance=~\"${VAL_INSTANCE}\"}",
+          "expr": "node_memory_MemFree_bytes{instance=~\"localhost:9100\"}",
           "legendFormat": "unused",
           "refId": "unused"
         }
@@ -282,6 +276,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -296,7 +291,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -328,14 +324,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"system\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"localhost:9100\",mode=\"system\"}[$__rate_interval]))",
           "legendFormat": "sys",
           "refId": "sys"
         },
@@ -344,7 +340,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"user\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"localhost:9100\",mode=\"user\"}[$__rate_interval]))",
           "legendFormat": "usr",
           "refId": "usr"
         },
@@ -353,7 +349,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"iowait\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"localhost:9100\",mode=\"iowait\"}[$__rate_interval]))",
           "legendFormat": "iowait",
           "refId": "iowait"
         },
@@ -362,7 +358,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"nice\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"localhost:9100\",mode=\"nice\"}[$__rate_interval]))",
           "legendFormat": "nice",
           "refId": "nice"
         },
@@ -371,7 +367,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"${VAL_INSTANCE}\",mode=\"idle\"}[$__rate_interval]))",
+          "expr": "avg without(cpu) (rate(node_cpu_seconds_total{instance=~\"localhost:9100\",mode=\"idle\"}[$__rate_interval]))",
           "legendFormat": "idle",
           "refId": "idle"
         }
@@ -426,6 +422,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -440,7 +437,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -472,14 +470,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_network_receive_bytes_total{instance=~\"${VAL_INSTANCE}\",device=\"enp94s0f0\"}[$__rate_interval])",
+          "expr": "rate(node_network_receive_bytes_total{instance=~\"localhost:9100\",device=\"enp94s0f0\"}[$__rate_interval])",
           "legendFormat": "bytes_recv/s",
           "refId": "recv"
         },
@@ -488,7 +486,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_network_transmit_bytes_total{instance=~\"${VAL_INSTANCE}\",device=\"enp94s0f0\"}[$__rate_interval])",
+          "expr": "rate(node_network_transmit_bytes_total{instance=~\"localhost:9100\",device=\"enp94s0f0\"}[$__rate_interval])",
           "legendFormat": "bytes_sent/s",
           "refId": "sent"
         }
@@ -530,6 +528,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -544,7 +543,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -576,14 +576,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_netstat_Tcp_ActiveOpens{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval])",
+          "expr": "rate(node_netstat_Tcp_ActiveOpens{instance=~\"localhost:9100\"}[$__rate_interval])",
           "legendFormat": "Active opens/s",
           "refId": "active"
         },
@@ -592,7 +592,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_netstat_Tcp_PassiveOpens{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval])",
+          "expr": "rate(node_netstat_Tcp_PassiveOpens{instance=~\"localhost:9100\"}[$__rate_interval])",
           "legendFormat": "Passive opens/s",
           "refId": "passive"
         }
@@ -647,6 +647,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -661,7 +662,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -693,14 +695,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_disk_io_time_seconds_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval])",
+          "expr": "rate(node_disk_io_time_seconds_total{instance=~\"localhost:9100\"}[$__rate_interval])",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -742,6 +744,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -756,7 +759,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -788,14 +792,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(node_disk_io_time_weighted_seconds_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval]) / (rate(node_disk_reads_completed_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval]) + rate(node_disk_writes_completed_total{instance=~\"${VAL_INSTANCE}\"}[$__rate_interval]))",
+          "expr": "rate(node_disk_io_time_weighted_seconds_total{instance=~\"localhost:9100\"}[$__rate_interval]) / (rate(node_disk_reads_completed_total{instance=~\"localhost:9100\"}[$__rate_interval]) + rate(node_disk_writes_completed_total{instance=~\"localhost:9100\"}[$__rate_interval]))",
           "legendFormat": "{{device}}",
           "refId": "A"
         }
@@ -837,6 +841,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -851,7 +856,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -898,14 +904,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(zfs_dataset_nwritten_bytes_total{instance=~\"${VAL_INSTANCE}\",dataset!~\".*reserved\"}[$__rate_interval])",
+          "expr": "rate(zfs_dataset_nwritten_bytes_total{instance=~\"localhost:9100\",dataset!~\".*reserved\"}[$__rate_interval])",
           "legendFormat": "written {{dataset}}",
           "refId": "A"
         }
@@ -947,6 +953,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -961,7 +968,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -1008,14 +1016,14 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(zfs_dataset_nread_bytes_total{instance=~\"${VAL_INSTANCE}\",dataset!~\".*reserved\"}[$__rate_interval])",
+          "expr": "rate(zfs_dataset_nread_bytes_total{instance=~\"localhost:9100\",dataset!~\".*reserved\"}[$__rate_interval])",
           "legendFormat": "nread {{dataset}}",
           "refId": "A"
         }
@@ -1070,6 +1078,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1085,7 +1094,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -1297,15 +1307,17 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.7",
+      "pluginVersion": "12.3.6",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_used_bytes{instance=~\"localhost:9134\",name=\"zroot\"} - zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot\"}",
           "legendFormat": "zroot snapshots",
+          "range": true,
           "refId": "zroot_snap"
         },
         {
@@ -1313,8 +1325,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot\"}",
           "legendFormat": "zroot refer",
+          "range": true,
           "refId": "zroot_refer"
         },
         {
@@ -1322,8 +1336,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_used_bytes{instance=~\"localhost:9134\",name=\"zroot/home\"} - zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot/home\"}",
           "legendFormat": "zroot/home snapshots",
+          "range": true,
           "refId": "home_snap"
         },
         {
@@ -1331,8 +1347,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot/home\"}",
           "legendFormat": "zroot/home refer",
+          "range": true,
           "refId": "home_refer"
         },
         {
@@ -1340,8 +1358,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home_curators\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_used_bytes{instance=~\"localhost:9134\",name=\"zroot/home_curators\"} - zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot/home_curators\"}",
           "legendFormat": "zroot/home_curators snapshots",
+          "range": true,
           "refId": "curators_snap"
         },
         {
@@ -1349,8 +1369,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/home_curators\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot/home_curators\"}",
           "legendFormat": "zroot/home_curators refer",
+          "range": true,
           "refId": "curators_refer"
         },
         {
@@ -1358,8 +1380,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_snapshot_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/postgres_data\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_used_bytes{instance=~\"localhost:9134\",name=\"zroot/postgres_data\"} - zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot/postgres_data\"}",
           "legendFormat": "zroot/postgres_data snapshots",
+          "range": true,
           "refId": "pg_snap"
         },
         {
@@ -1367,8 +1391,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_refer_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot/postgres_data\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_referenced_bytes{instance=~\"localhost:9134\",name=\"zroot/postgres_data\"}",
           "legendFormat": "zroot/postgres_data refer",
+          "range": true,
           "refId": "pg_refer"
         },
         {
@@ -1376,8 +1402,10 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "zfs_dataset_avail_bytes{instance=~\"${VAL_INSTANCE}\",dataset=\"zroot\"}",
+          "editorMode": "code",
+          "expr": "zfs_dataset_available_bytes{instance=~\"localhost:9134\",name=\"zroot\"}",
           "legendFormat": "avail",
+          "range": true,
           "refId": "avail"
         }
       ],
@@ -1385,20 +1413,22 @@
       "type": "timeseries"
     }
   ],
+  "preload": false,
   "refresh": "1m",
-  "schemaVersion": 41,
+  "schemaVersion": 42,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "utc",
-  "title": "System",
-  "uid": null,
-  "version": 11,
-  "weekStart": ""
+  "title": "System (Stackage)",
+  "uid": "10a90900-6d3c-4ec2-a8d4-d0b9f59483ed",
+  "version": 3,
+  "weekStart": "",
+  "id": null
 }
