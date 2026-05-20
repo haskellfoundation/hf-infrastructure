@@ -5,6 +5,7 @@ let
   # Reads per-dataset I/O stats from /proc/spl/kstat/zfs and writes them
   # in Prometheus textfile format. node_exporter picks these up via the
   # textfile collector.
+  # The standard zfs_exporter doesn't provide these counters.
   zfsDatasetMetrics = pkgs.writeShellScript "zfs-dataset-metrics" ''
     set -euo pipefail
     out="${textfileDir}/zfs_dataset.prom.$$"
@@ -31,21 +32,6 @@ let
           echo "zfs_dataset_nread_bytes_total{dataset=\"$dataset\"} $nread"
           echo "zfs_dataset_nwritten_bytes_total{dataset=\"$dataset\"} $nwritten"
         fi
-      done
-
-      # Per-dataset usage from zfs list
-      echo "# HELP zfs_dataset_refer_bytes Direct usage (REFER) of ZFS dataset"
-      echo "# TYPE zfs_dataset_refer_bytes gauge"
-      echo "# HELP zfs_dataset_snapshot_bytes Snapshot usage (USED minus REFER) of ZFS dataset"
-      echo "# TYPE zfs_dataset_snapshot_bytes gauge"
-      echo "# HELP zfs_dataset_avail_bytes Available space in ZFS dataset"
-      echo "# TYPE zfs_dataset_avail_bytes gauge"
-
-      ${pkgs.zfs}/bin/zfs list -Hp -o name,used,avail,refer | while IFS=$'\t' read -r name used avail refer; do
-        snapshot=$(( used - refer ))
-        echo "zfs_dataset_refer_bytes{dataset=\"$name\"} $refer"
-        echo "zfs_dataset_snapshot_bytes{dataset=\"$name\"} $snapshot"
-        echo "zfs_dataset_avail_bytes{dataset=\"$name\"} $avail"
       done
     } > "$out"
     mv "$out" "$final"
