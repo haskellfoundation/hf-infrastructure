@@ -8,19 +8,15 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
 
       - uses: cachix/install-nix-action@v31
 
-      - name: Update flake inputs
-        run: nix flake update
-
-      - name: Create PR
-        uses: peter-evans/create-pull-request@v8
+      - uses: DeterminateSystems/update-flake-lock@v28
         with:
-          commit-message: "nix flake update"
-          title: "nix flake update"
-          body: Automated flake input updates.
+          pr-title: "nix flake update"
           branch: automated/flake-update
-          delete-branch: true
