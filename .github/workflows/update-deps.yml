@@ -37,7 +37,7 @@ jobs:
         with:
           name: ${{ inputs.cachix-name }}
 
-      - uses: extractions/setup-just@v2
+      - uses: extractions/setup-just@v4
 
       - name: Run update-deps
         env:
@@ -55,7 +55,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.changes.outputs.has_changes == 'true' && github.event_name != 'pull_request'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: ${{ inputs.pr-title }}
