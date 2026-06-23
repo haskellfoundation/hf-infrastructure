@@ -1,0 +1,65 @@
+name: Update Dependencies (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      pr-branch:
+        type: string
+        default: auto-update-deps
+      pr-title:
+        type: string
+        default: Update dependencies
+      pr-body:
+        type: string
+        default: |
+          Automated dependency update:
+          - Updated nixpkgs flake input
+          - Synced stack.yaml snapshot with nixpkgs LTS version
+          - Updated Cabal/Cabal-syntax to latest from Hackage
+          - Regenerated nix package definitions
+      cachix-name:
+        type: string
+        default: ""
+
+jobs:
+  update-deps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: cachix/install-nix-action@v31
+
+      - if: inputs.cachix-name != ''
+        uses: cachix/cachix-action@v17
+        with:
+          name: ${{ inputs.cachix-name }}
+
+      - uses: extractions/setup-just@v2
+
+      - name: Run update-deps
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: just update-deps
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true' && github.event_name != 'pull_request'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: ${{ inputs.pr-title }}
+          title: ${{ inputs.pr-title }}
+          body: ${{ inputs.pr-body }}
+          branch: ${{ inputs.pr-branch }}
+          delete-branch: true
