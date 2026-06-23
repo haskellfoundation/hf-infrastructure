@@ -2,7 +2,8 @@ name: Update flake inputs
 
 on:
   schedule:
-    - cron: "0 0 * * 0" # Weekly on Sunday at midnight
+    # Weekly on Monday at 10:00 UTC
+    - cron: "0 10 * * 1"
   workflow_dispatch:
 
 jobs:
