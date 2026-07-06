@@ -37,6 +37,7 @@
     nixosModules.zfs-dataset-metrics = ./modules/zfs-dataset-metrics.nix;
     nixosModules.monitoring-prometheus = ./modules/monitoring-prometheus.nix;
     nixosModules.service-watchdog = ./modules/service-watchdog.nix;
+    nixosModules.ghc-perf-import = ./modules/ghc-perf-import.nix;
 
 
     nixosModules.hf-cert-1 = {

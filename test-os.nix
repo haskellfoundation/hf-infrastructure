@@ -19,6 +19,7 @@ pkgs.testers.nixosTest {
       self.nixosModules.stackage-server
       self.nixosModules.casa-server
       self.nixosModules.service-watchdog
+      self.nixosModules.ghc-perf-import
       { sops.defaultSopsFile = ./test-sops-file.json;
         sops.age.keyFile = "/etc/test-age-key";
         environment.etc."test-age-key".source = ./test-age-key.txt;
@@ -70,6 +71,20 @@ pkgs.testers.nixosTest {
               echo '#!/bin/sh' > $out/bin/stackage-server-cron && chmod +x $out/bin/stackage-server-cron
               touch $out/run/config
             '';
+        };
+        services.ghc-perf-import = {
+          enable = true;
+          gitlab-bot-package = pkgs.writeShellScriptBin "gitlab-perf-import-service" "exit 0";
+          ghc-note-perf-import-package = pkgs.symlinkJoin {
+            name="ghc-perf-import";
+            paths=[(pkgs.writeShellScriptBin "perf-import-notes" "exit 0")
+                   (pkgs.writeShellScriptBin "perf-import-git" "exit 0")];
+          };
+          git-package =  (pkgs.writeShellScriptBin "git" "mkdir -p ghc;exit 0");
+          dbSchema = builtins.toFile "import.sql" ''
+          CREATE TABLE test ( id serial PRIMARY KEY);
+          '';
+          gitlabToken = "bla";
         };
       }
     ];
@@ -155,5 +170,14 @@ pkgs.testers.nixosTest {
     machine.wait_for_unit("stackage-server")
     machine.wait_for_open_port(3000)
     machine.succeed("curl --silent --max-time 5 http://localhost:3000/lts")
+    # ghc-note-perf-import
+    machine.succeed("systemctl cat ghc-note-perf-import.timer")
+    machine.succeed("systemctl is-enabled ghc-note-perf-import.timer")
+    machine.succeed("systemctl cat ghc-note-perf-import.service")
+    machine.succeed("systemctl start ghc-note-perf-import.service --wait")
+    machine.succeed("stat /var/cache/ghc-perf/ghc")
+    # ghc-perf-import gitlab bot
+    machine.succeed("systemctl cat ghc-perf-import-gitlab-bot.service")
+    machine.succeed("systemctl is-enabled ghc-perf-import-gitlab-bot.service")
   '';
 }
