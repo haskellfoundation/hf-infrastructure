@@ -11,6 +11,9 @@
     # Default is 100. Wtf, NixOS?
     boot.loader.grub.configurationLimit = 20;
 
+    # Always enable tcp_ecn
+    boot.kernel.sysctl."net.ipv4.tcp_ecn" = 1;
+
     networking.domain = "haskell.foundation";
 
     nix = {
