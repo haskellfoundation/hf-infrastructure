@@ -3,9 +3,9 @@ let cfg = config.services.ghc-perf-import;
 in{
   options.services.ghc-perf-import = {
     enable = lib.mkEnableOption "Enable ghc-perf-import service";
-    gitlabToken = lib.mkOption{
-      type = lib.types.str;
-      description = "GitLab access token";
+    gitlab-token-path = lib.mkOption{
+      type = lib.types.path;
+      description = "Path to file holding GitLab access token";
     };
     user = lib.mkOption{
       type = lib.types.str;
@@ -43,7 +43,7 @@ in{
       script = ''
         ghc-perf-import-service \
           --gitlab-root=https://gitlab.haskell.org/ \
-          --access-token=${config.services.ghc-perf-import.gitlabToken} \
+          --access-token-path=${config.services.ghc-perf-import.gitlab-token-path} \
           --conn-string=postgresql:///ghc_perf \
           --port=7088
       '';
@@ -95,7 +95,7 @@ in{
         CacheDirectory = "ghc-perf";
       };
     };
-  
+
     systemd.timers.ghc-note-perf-import = {
       description = "Periodically update ghc-perf metrics";
       wants = [ "network.target" "postgresql.service" ];
@@ -114,6 +114,6 @@ in{
     };
 
     users.groups."${cfg.group}" = {};
-    
+
   };
 }

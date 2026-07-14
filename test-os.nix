@@ -84,7 +84,7 @@ pkgs.testers.nixosTest {
           dbSchema = builtins.toFile "import.sql" ''
           CREATE TABLE test ( id serial PRIMARY KEY);
           '';
-          gitlabToken = "bla";
+          gitlab-token-path = "/dev/null";
         };
       }
     ];
