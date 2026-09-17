@@ -17,7 +17,7 @@ jobs:
 
       - uses: cachix/install-nix-action@v31
 
-      - uses: DeterminateSystems/update-flake-lock@v28
+      - uses: DeterminateSystems/update-flake-lock@v29
         with:
           pr-title: "nix flake update"
           branch: automated/flake-update
