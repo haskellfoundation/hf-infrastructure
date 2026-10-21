@@ -34,10 +34,16 @@ in
     port = zfsExporterPort;
   };
 
+  sops.secrets."grafana/secret_key" = lib.mkIf config.services.grafana.enable {
+    owner = "grafana";
+  };
+
   services.grafana = {
     enable = true;
     settings.server.http_port = 8600;
     settings."auth.anonymous".enabled = true;
+    settings.security.secret_key =
+      "$__file{${config.sops.secrets."grafana/secret_key".path}}";
 
     provision = {
       enable = true;
