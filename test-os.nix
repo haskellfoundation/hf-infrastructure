@@ -20,6 +20,7 @@ pkgs.testers.nixosTest {
       self.nixosModules.casa-server
       self.nixosModules.service-watchdog
       self.nixosModules.ghc-perf-import
+      self.nixosModules.get-haskellstack-org
       { sops.defaultSopsFile = ./test-sops-file.json;
         sops.age.keyFile = "/etc/test-age-key";
         environment.etc."test-age-key".source = ./test-age-key.txt;
@@ -72,6 +73,15 @@ pkgs.testers.nixosTest {
               touch $out/run/config
             '';
         };
+        services.get-haskellstack-org = {
+          enable = true;
+          # Plain HTTP, so Caddy doesn't try ACME from the sandbox.
+          virtualHost = "http://get.haskellstack.test";
+          package = pkgs.writeShellScriptBin "get-haskellstack-org" ''
+            exec ${pkgs.python3}/bin/python3 -m http.server --bind 127.0.0.1 "$PORT"
+          '';
+        };
+
         services.ghc-perf-import = {
           enable = true;
           gitlab-bot-package = pkgs.writeShellScriptBin "gitlab-perf-import-service" "exit 0";
@@ -170,6 +180,11 @@ pkgs.testers.nixosTest {
     machine.wait_for_unit("stackage-server")
     machine.wait_for_open_port(3000)
     machine.succeed("curl --silent --max-time 5 http://localhost:3000/lts")
+    # get-haskellstack-org answers behind Caddy
+    machine.wait_for_unit("get-haskellstack-org")
+    machine.wait_for_open_port(3003)
+    machine.succeed("curl -f -H 'Host: get.haskellstack.test' http://127.0.0.1/")
+
     # ghc-note-perf-import
     machine.succeed("systemctl cat ghc-note-perf-import.timer")
     machine.succeed("systemctl is-enabled ghc-note-perf-import.timer")

@@ -38,6 +38,7 @@
     nixosModules.monitoring-prometheus = ./modules/monitoring-prometheus.nix;
     nixosModules.service-watchdog = ./modules/service-watchdog.nix;
     nixosModules.ghc-perf-import = ./modules/ghc-perf-import.nix;
+    nixosModules.get-haskellstack-org = ./stackage-builder/nixos-modules/get-haskellstack-org.nix;
 
 
     nixosModules.hf-cert-1 = {
